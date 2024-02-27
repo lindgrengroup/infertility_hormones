@@ -1,0 +1,4 @@
+biomarker	min	max
+Oestradiol	157.5	16046.8
+Testosterone	0.315	59.7762
+

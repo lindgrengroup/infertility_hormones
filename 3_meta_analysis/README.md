@@ -1,0 +1,1 @@
+Separate directories for the binary trait (infertility) and quantitative trait (hormone) meta-analyses. Shared liftover scripts to convert summary statistics from build hg19 to hg38 for all analyses. 

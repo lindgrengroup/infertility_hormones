@@ -1,0 +1,7 @@
+FAI
+FSH
+LH
+Oestradiol
+Progesterone
+Prolactin
+Testosterone

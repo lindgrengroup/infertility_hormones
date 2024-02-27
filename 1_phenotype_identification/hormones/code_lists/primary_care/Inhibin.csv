@@ -1,0 +1,16 @@
+terminology,readcode,readterm
+read2,443m.,Serum inhibin level
+read2,443t.,Plasma inhibin-A mean of median measurement
+read2,443q0,Plasma inhibin A level
+read2,443q.,Inhibin A level
+read2,443r.,Inhibin B level
+read2,443s.,Serum inhibin-A mean of median measurement
+read2,443r0,Plasma inhibin B level
+ctv3,X80Fq,Inhibin
+ctv3,XaJbW,Serum inhibin level
+ctv3,XaMox,Plasma inhibin-A mean of median measurement
+ctv3,XabwA,Plasma inhibin A level
+ctv3,XaMLO,Inhibin A level
+ctv3,XaMLP,Inhibin B level
+ctv3,XaMop,Serum inhibin-A mean of median measurement
+ctv3,XabwB,Plasma inhibin B level

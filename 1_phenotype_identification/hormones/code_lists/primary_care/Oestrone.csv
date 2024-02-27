@@ -1,0 +1,9 @@
+terminology,readcode,readterm
+read2,4Q2h0,Urine oestrone concentration
+read2,4Q2h1,Serum oestrone concentration
+read2,4Q2h.,Oestrone level
+ctv3,X80G6,Oestrone
+ctv3,XacL7,Urine oestrone concentration
+ctv3,XacL8,Serum oestrone concentration
+ctv3,XaNPd,Oestrone level
+ctv3,X80G7,Oestrone sulphate

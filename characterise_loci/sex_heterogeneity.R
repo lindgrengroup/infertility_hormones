@@ -1,0 +1,196 @@
+# Author: Samvida S. Venkatesh
+# Date: 24/10/2022
+
+library(argparse)
+library(tidyverse)
+theme_set(theme_bw())
+
+# Get arguments ----
+
+parser <- ArgumentParser()
+parser$add_argument("--hormone", required = TRUE,
+                    help = "Hormone to test sex-heterogeneity")
+args <- parser$parse_args()
+
+HORMONE <- args$hormone
+logfile <- paste0("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/",
+                  HORMONE, "_log.txt")
+
+# Read data ----
+
+filenames <- read.table("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/hormone_files_list.txt",
+                        sep = "\t", header = F, stringsAsFactors = F)
+colnames(filenames) <- c("strata", "fname", "N")
+
+NUMERIC_COLS <- c("CHROM", "GENPOS", "Freq1", "A1FREQ", "BETA", "SE", "PVALUE")
+
+dat_f <- read.table(filenames$fname[filenames$strata == paste0(HORMONE, "_F")], 
+                    sep = "\t", header = T, stringsAsFactors = F)
+dat_f <- dat_f %>%
+  mutate(across(any_of(NUMERIC_COLS), as.numeric))
+dat_f <- dat_f[, c(1:3, 5:7, 9:11)]
+colnames(dat_f)[6:9] <- c("AF_Tested_F", "BETA_F", "SE_F", "PVALUE_F")
+
+dat_m <- read.table(filenames$fname[filenames$strata == paste0(HORMONE, "_M")], 
+                    sep = "\t", header = T, stringsAsFactors = F)
+if (grepl("UKBB", filenames$fname[filenames$strata == paste0(HORMONE, "_M")])) {
+  dat_m <- dat_m %>%
+    mutate(across(any_of(NUMERIC_COLS), as.numeric))
+  dat_m <- dat_m[, c(1:6, 8, 9, 12)]
+  colnames(dat_m)[c(4:9)] <- c("Allele1", "Allele2",
+                               "AF_Tested_M", "BETA_M", "SE_M", "PVALUE_M")
+  
+} else {
+  dat_m <- dat_m %>%
+    mutate(across(any_of(NUMERIC_COLS), as.numeric))
+  dat_m <- dat_m[, c(1:3, 5:7, 9:11)]
+  colnames(dat_m)[6:9] <- c("AF_Tested_M", "BETA_M", "SE_M", "PVALUE_M")
+  
+}
+
+dat_sex_comb <- read.table(filenames$fname[filenames$strata == paste0(HORMONE, "_sex_comb")], 
+                           sep = "\t", header = T, stringsAsFactors = F)
+dat_sex_comb <- dat_sex_comb %>%
+  mutate(across(any_of(NUMERIC_COLS), as.numeric))
+dat_sex_comb <- dat_sex_comb[, c(1:3, 5:7, 9:11)]
+colnames(dat_sex_comb)[6:9] <- c("AF_Tested_sex_comb", "BETA_sex_comb", 
+                                 "SE_sex_comb", "PVALUE_sex_comb")
+
+# Filter to only GWS SNPs ----
+
+gws_f <- dat_f$ID[dat_f$PVALUE_F <= 5E-08]
+gws_m <- dat_m$ID[dat_m$PVALUE_M <= 5E-08]
+gws_sex_comb <- dat_sex_comb$ID[dat_sex_comb$PVALUE_sex_comb <= 5E-08]
+
+retain_snps <- unique(c(gws_f, gws_m, gws_sex_comb))
+
+dat_f <- dat_f %>% filter(ID %in% retain_snps)
+dat_m <- dat_m %>% filter(ID %in% retain_snps)
+dat_sex_comb <- dat_sex_comb %>% filter(ID %in% retain_snps)
+
+# Log the intersections between F/M, F/sc, and M/sc ----
+
+sink(logfile, append = T)
+cat(paste0("Hormone: ", HORMONE, "\n"))
+cat(paste0("# GWS SNPs in female-specific strata: ", 
+           length(gws_f), "\n"))
+cat(paste0("# GWS SNPs in male-specific strata: ", 
+           length(gws_m), "\n"))
+cat(paste0("# GWS SNPs in sex-combined strata: ", 
+           length(gws_sex_comb), "\n"))
+
+cat(paste0("\t", "# GWS SNPs shared in female & sex-combined strata: ", 
+           length(intersect(gws_f, gws_sex_comb)), "\n"))
+cat(paste0("\t", "# GWS SNPs shared in male & sex-combined strata: ", 
+           length(intersect(gws_m, gws_sex_comb)), "\n"))
+cat(paste0("\t", "# GWS SNPs shared in female & male strata: ", 
+           length(intersect(gws_f, gws_m)), "\n"))
+sink()
+
+# Combine data across sexes and check directional consistency ----
+
+full_dat <- list(dat_f, dat_m, dat_sex_comb) %>% 
+  reduce(inner_join)
+
+full_dat <- full_dat %>% 
+  mutate(sex_dirn_consistent = ifelse(BETA_F*BETA_M > 0, 
+                                      "consistent", 
+                                      "inconsistent"),
+         het_zstat = (BETA_F - BETA_M)/sqrt(SE_F^2 + SE_M^2),
+         het_pval = pnorm(het_zstat, 0, 1, lower.tail = T))
+
+nconsistent_for_text <- which(full_dat$sex_dirn_consistent == "consistent" 
+                              & full_dat$ID %in% unique(c(gws_f, gws_m)))
+nhet_significant <- which(full_dat$het_pval <= 0.05 
+                          & full_dat$ID %in% unique(c(gws_f, gws_m)))
+
+sink(logfile, append = T)
+cat(paste0("Number of directionally consistent SNPs that reach GWS in men OR women: ", 
+           length(nconsistent_for_text), "\n"))
+cat(paste0("Number of SNPs with sex-heterogeneity PVAL < 0.05 that reach GWS in men OR women: ", 
+           length(nhet_significant), "\n"))
+sink()
+
+write.table(full_dat,
+            paste0("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/",
+                   HORMONE, "_all_sexes_gws_results.txt"),
+            sep = "\t", row.names = F, quote = F)
+
+# Bland-Altman plots ----
+
+custom_three_diverge <- c("#D35C79","#009593", "#000000")
+names(custom_three_diverge) <- c("female_only", "male_only", "both")
+
+plotBlandAltman <- function (df) {
+  # Decide colour
+  for_plot <- df %>%
+    mutate(beta_diff = BETA_F - BETA_M,
+           beta_mean = (BETA_F + BETA_M)/2,
+           point_type = ifelse(PVALUE_F <= 5E-8 & PVALUE_M <= 5E-8, "both",
+                               ifelse(PVALUE_F <= 5E-8 & PVALUE_M > 5E-8, "female_only",
+                                      ifelse(PVALUE_F > 5E-8 & PVALUE_M <= 5E-8, "male_only", NA)))) %>%
+    filter(!is.na(point_type))
+  
+  # Get BA plot P-value for title
+  ba_p_title <- t.test(for_plot$beta_diff, alternative = "two.sided",
+                       mu = 0, paired = F, conf.level = 0.95)$p.val
+  cat(paste0("Mean: ", signif(mean(for_plot$beta_diff), 3),
+             ", P: ", signif(ba_p_title, 3)), "\n")
+  
+  res_plot <- ggplot(for_plot, aes(x = beta_mean, 
+                                   y = beta_diff,
+                                   fill = point_type, colour = point_type)) +
+    geom_point() +
+    #geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    #geom_abline(intercept = 0, slope = 1) +
+    scale_colour_manual(values = custom_three_diverge, guide = "none") +
+    scale_fill_manual(values = custom_three_diverge, guide = "none") +
+    theme(axis.text = element_text(size = 6),
+          axis.title = element_blank(),
+          plot.title = element_text(size = 8))
+  return (res_plot)
+}
+
+ggsave(paste0("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/",
+              HORMONE, "_BA_plot.png"),
+       plotBlandAltman(full_dat), 
+       height = 5, width = 5, units = "cm")
+
+# Scatter plots ----
+
+plotScatter <- function (df) {
+  # Decide colour
+  for_plot <- df %>%
+    mutate(LCI_M = BETA_M - 1.96*SE_M, UCI_M = BETA_M + 1.96*SE_M, 
+           LCI_F = BETA_F - 1.96*SE_F, UCI_F = BETA_F + 1.96*SE_F, 
+           point_type = ifelse(PVALUE_F <= 5E-8 & PVALUE_M <= 5E-8, "both",
+                  ifelse(PVALUE_F <= 5E-8 & PVALUE_M > 5E-8, "female_only",
+                         ifelse(PVALUE_F > 5E-8 & PVALUE_M <= 5E-8, "male_only", NA)))) %>%
+    filter(!is.na(point_type))
+  
+  # Get R2 for title
+  cat(cor(for_plot$BETA_M, for_plot$BETA_F))
+  
+  res_plot <- ggplot(for_plot, aes(x = BETA_M, y = BETA_F,
+                                   fill = point_type, colour = point_type)) +
+    geom_pointrange(aes(xmin = LCI_M, xmax = UCI_M),
+                    size = 0.3, fatten = 2) +
+    geom_pointrange(aes(ymin = LCI_F, ymax = UCI_F),
+                    size = 0.3, fatten = 2) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    #geom_abline(intercept = 0, slope = 1) +
+    scale_colour_manual(values = custom_three_diverge, guide = "none") +
+    scale_fill_manual(values = custom_three_diverge, guide = "none") +
+    theme(axis.text = element_text(size = 6),
+          axis.title = element_blank(),
+          plot.title = element_text(size = 8))
+  return (res_plot)
+}
+
+ggsave(paste0("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/",
+              HORMONE, "_scatter_plot.png"),
+       plotScatter(full_dat), 
+       height = 5, width = 5, units = "cm")
+

@@ -1,0 +1,3 @@
+biomarker	file	field	date_field	reportability_field
+Oestradiol	Biomarkers	30800	30801	30806
+Testosterone	Biomarkers	30850	30851	30856
