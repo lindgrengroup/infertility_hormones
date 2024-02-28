@@ -1,0 +1,1 @@
+Ran colocalisations for all infertility traits (male, 1 —> 5 female, Eur and all ancestries) with all 49 GTEx tissues and cell types. Started from all genes for which there is an infertility sentinel SNP within 1Mb of the transcription start site.

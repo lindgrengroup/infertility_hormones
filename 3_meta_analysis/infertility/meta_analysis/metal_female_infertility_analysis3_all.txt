@@ -1,0 +1,85 @@
+SCHEME STDERR        
+USESTRAND OFF
+GENOMICCONTROL OFF
+AVERAGEFREQ ON
+MINMAXFREQ ON
+
+CUSTOMVARIABLE N_CASES
+CUSTOMVARIABLE N_CONTROLS
+
+# Process FinnGen
+SEPARATOR WHITESPACE     
+MARKERLABEL markername
+ALLELELABELS alt ref
+EFFECTLABEL beta
+STDERRLABEL sebeta
+FREQLABEL af_alt
+LABEL N_CASES as n_cases
+LABEL N_CONTROLS as n_controls
+
+PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/FinnGen/FinnGen_female_infertility_analysis3_for_metal.txt
+
+# Process UKBB
+# SEPARATOR WHITESPACE    
+# MARKERLABEL markername
+# ALLELELABELS ALLELE1 ALLELE0
+# EFFECTLABEL BETA
+# STDERRLABEL SE
+# FREQLABEL A1FREQ
+# LABEL N_CASES as n_cases
+# LABEL N_CONTROLS as n_controls
+
+# PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/UKBB/UKBB_female_infertility_analysis3_for_metal.txt 
+
+# Process EstBB
+SEPARATOR WHITESPACE   
+MARKERLABEL markername
+ALLELELABELS ALLELE1 ALLELE0
+EFFECTLABEL BETA
+STDERRLABEL SE
+FREQLABEL A1FREQ
+LABEL N_CASES as n_cases
+LABEL N_CONTROLS as n_controls
+
+PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/EstBB/EstBB_female_infertility_analysis3_for_metal.txt
+
+# Process Danes
+SEPARATOR WHITESPACE    
+MARKERLABEL markername
+ALLELELABELS Allele2 Allele1
+EFFECTLABEL BETA
+STDERRLABEL SE
+FREQLABEL AF_Allele2
+LABEL N_CASES as n_cases
+LABEL N_CONTROLS as n_controls
+
+PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/Danes/Danes_female_infertility_analysis3_for_metal.txt
+
+# Process DeCODE
+# SEPARATOR WHITESPACE    
+# MARKERLABEL markername
+# ALLELELABELS EA OA
+# EFFECTLABEL Beta
+# STDERRLABEL SEbeta
+# FREQLABEL EAF
+# LABEL N_CASES as n_cases
+# LABEL N_CONTROLS as n_controls
+
+# PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/DeCODE/DeCODE_female_infertility_analysis3_for_metal.txt
+
+# Process Genes and Health
+SEPARATOR WHITESPACE     
+MARKERLABEL markername
+ALLELELABELS ALLELE1 ALLELE0
+EFFECTLABEL BETA
+STDERRLABEL SE
+FREQLABEL A1FREQ
+LABEL N_CASES as n_cases
+LABEL N_CONTROLS as n_controls
+
+PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/GandH/GandH_female_infertility_analysis3_for_metal.txt
+
+REMOVEFILTERS
+OUTFILE /well/lindgren/laura/projects/infertility/meta_analysis/MA_June2023/results/female_infertility_analysis3_all .out
+ANALYZE HETEROGENEITY
+CLEAR
