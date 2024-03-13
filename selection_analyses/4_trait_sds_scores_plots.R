@@ -151,6 +151,28 @@ locusPlot <- function (locus_dat, locus_name,
   return (manhattan_plot)
 }
 
+# Function for p-value vs SDS plots ----
+
+scatterPlot <- function (locus_dat) {
+  plot_dat <- locus_dat %>%
+    mutate(status = ifelse(status == "signif" & sex_strata == "F", "signif_F",
+                           ifelse(status == "signif" & sex_strata == "M", "signif_M",
+                                  status)),
+           neglogp = -log10(PVALUE))
+  
+  scatter_plot <- ggplot(plot_dat, aes(x = neglogp, y = score),
+                           fill = status, colour = status) +
+    geom_point(aes(fill = status, colour = status)) +
+    geom_hline(yintercept = SDS_LOW, linetype = "dashed") +
+    geom_hline(yintercept = SDS_HIGH, linetype = "dashed") +
+    scale_colour_manual(values = col_palette, guide = "none") +
+    scale_fill_manual(values = col_palette, guide = "none") +
+    labs(x = "-log10(PVALUE)", y = "trait-SDS") +
+    theme(axis.text = element_text(size = 6, family = "Arial"),
+          axis.title = element_blank()) 
+  return (scatter_plot)
+}
+
 # Get plots for the two infertility loci:
 rsid <- "rs1964514"
 chr_id <- 8
@@ -164,6 +186,10 @@ lplot <- locusPlot(locus_dat = window_scores,
                    locus_position = pos_id)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
        lplot,
+       units = "cm", height = 4.5, width = 7)
+splot <- scatterPlot(locus_dat = window_scores)
+ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
+       splot,
        units = "cm", height = 4.5, width = 7)
 
 
@@ -180,7 +206,10 @@ lplot <- locusPlot(locus_dat = window_scores,
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
        lplot,
        units = "cm", height = 4.5, width = 7)
-
+splot <- scatterPlot(locus_dat = window_scores)
+ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
+       splot,
+       units = "cm", height = 4.5, width = 7)
 
 # Get plots for the four testosterone loci:
 rsid <- "rs7578292"
@@ -196,6 +225,11 @@ lplot <- locusPlot(locus_dat = window_scores,
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
        lplot,
        units = "cm", height = 4.5, width = 7)
+splot <- scatterPlot(locus_dat = window_scores)
+ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
+       splot,
+       units = "cm", height = 4.5, width = 7)
+
 
 rsid <- "rs1185977"
 chr_id <- 6
@@ -210,6 +244,11 @@ lplot <- locusPlot(locus_dat = window_scores,
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
        lplot,
        units = "cm", height = 4.5, width = 7)
+splot <- scatterPlot(locus_dat = window_scores)
+ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
+       splot,
+       units = "cm", height = 4.5, width = 7)
+
 
 rsid <- "rs112881196"
 chr_id <- 2
@@ -224,6 +263,11 @@ lplot <- locusPlot(locus_dat = window_scores,
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
        lplot,
        units = "cm", height = 4.5, width = 7)
+splot <- scatterPlot(locus_dat = window_scores)
+ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
+       splot,
+       units = "cm", height = 4.5, width = 7)
+
 
 rsid <- "rs8016626"
 chr_id <- 14
@@ -238,4 +282,9 @@ lplot <- locusPlot(locus_dat = window_scores,
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
        lplot,
        units = "cm", height = 4.5, width = 7)
+splot <- scatterPlot(locus_dat = window_scores)
+ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
+       splot,
+       units = "cm", height = 4.5, width = 7)
+
 
