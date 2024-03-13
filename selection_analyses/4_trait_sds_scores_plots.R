@@ -190,7 +190,7 @@ ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
 splot <- scatterPlot(locus_dat = window_scores)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
        splot,
-       units = "cm", height = 4.5, width = 7)
+       units = "cm", height = 4.5, width = 4.5)
 
 
 rsid <- "rs72676844"
@@ -209,7 +209,7 @@ ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
 splot <- scatterPlot(locus_dat = window_scores)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
        splot,
-       units = "cm", height = 4.5, width = 7)
+       units = "cm", height = 4.5, width = 4.5)
 
 # Get plots for the four testosterone loci:
 rsid <- "rs7578292"
@@ -228,7 +228,7 @@ ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
 splot <- scatterPlot(locus_dat = window_scores)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
        splot,
-       units = "cm", height = 4.5, width = 7)
+       units = "cm", height = 4.5, width = 4.5)
 
 
 rsid <- "rs1185977"
@@ -247,7 +247,7 @@ ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
 splot <- scatterPlot(locus_dat = window_scores)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
        splot,
-       units = "cm", height = 4.5, width = 7)
+       units = "cm", height = 4.5, width = 4.5)
 
 
 rsid <- "rs112881196"
@@ -266,7 +266,7 @@ ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
 splot <- scatterPlot(locus_dat = window_scores)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
        splot,
-       units = "cm", height = 4.5, width = 7)
+       units = "cm", height = 4.5, width = 4.5)
 
 
 rsid <- "rs8016626"
@@ -285,6 +285,6 @@ ggsave(paste0(mainpath, "/plots/", rsid, "_tsds.png"),
 splot <- scatterPlot(locus_dat = window_scores)
 ggsave(paste0(mainpath, "/plots/", rsid, "_tsds_scatter.png"),
        splot,
-       units = "cm", height = 4.5, width = 7)
+       units = "cm", height = 4.5, width = 4.5)
 
 
