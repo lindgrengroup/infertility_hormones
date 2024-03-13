@@ -68,25 +68,6 @@ dat_f <- dat_f %>% filter(ID %in% retain_snps)
 dat_m <- dat_m %>% filter(ID %in% retain_snps)
 dat_sex_comb <- dat_sex_comb %>% filter(ID %in% retain_snps)
 
-# Log the intersections between F/M, F/sc, and M/sc ----
-
-sink(logfile, append = T)
-cat(paste0("Hormone: ", HORMONE, "\n"))
-cat(paste0("# GWS SNPs in female-specific strata: ", 
-           length(gws_f), "\n"))
-cat(paste0("# GWS SNPs in male-specific strata: ", 
-           length(gws_m), "\n"))
-cat(paste0("# GWS SNPs in sex-combined strata: ", 
-           length(gws_sex_comb), "\n"))
-
-cat(paste0("\t", "# GWS SNPs shared in female & sex-combined strata: ", 
-           length(intersect(gws_f, gws_sex_comb)), "\n"))
-cat(paste0("\t", "# GWS SNPs shared in male & sex-combined strata: ", 
-           length(intersect(gws_m, gws_sex_comb)), "\n"))
-cat(paste0("\t", "# GWS SNPs shared in female & male strata: ", 
-           length(intersect(gws_f, gws_m)), "\n"))
-sink()
-
 # Combine data across sexes and check directional consistency ----
 
 full_dat <- list(dat_f, dat_m, dat_sex_comb) %>% 
@@ -99,22 +80,59 @@ full_dat <- full_dat %>%
          het_zstat = (BETA_F - BETA_M)/sqrt(SE_F^2 + SE_M^2),
          het_pval = pnorm(het_zstat, 0, 1, lower.tail = T))
 
-nconsistent_for_text <- which(full_dat$sex_dirn_consistent == "consistent" 
-                              & full_dat$ID %in% unique(c(gws_f, gws_m)))
-nhet_significant <- which(full_dat$het_pval <= 0.05 
-                          & full_dat$ID %in% unique(c(gws_f, gws_m)))
-
-sink(logfile, append = T)
-cat(paste0("Number of directionally consistent SNPs that reach GWS in men OR women: ", 
-           length(nconsistent_for_text), "\n"))
-cat(paste0("Number of SNPs with sex-heterogeneity PVAL < 0.05 that reach GWS in men OR women: ", 
-           length(nhet_significant), "\n"))
-sink()
-
 write.table(full_dat,
             paste0("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/",
                    HORMONE, "_all_sexes_gws_results.txt"),
             sep = "\t", row.names = F, quote = F)
+
+# Prune to get independent lead SNPs across analyses ----
+
+all_snps <- full_dat %>%
+  filter(PVALUE_F <= PTHRESH | PVALUE_M <= PTHRESH) %>%
+  # filter(AF_Tested_F >= 0.01 & AF_Tested_F <= 0.99) %>%
+  # filter(AF_Tested_M >= 0.01 & AF_Tested_M <= 0.99) %>%
+  mutate(PVALUE = pmin(PVALUE_F, PVALUE_M))
+
+all_snps <- split(all_snps, f = all_snps$CHROM)
+
+KB_PRUNE <- 500
+WINDOW_SIZE <- KB_PRUNE*1000 # 500kb window
+
+pruneSNPs <- function (df, dist_bp = 500000) {
+  # Start with the first SNP in the dataframe
+  old_top <- -Inf
+  current_top <- df$GENPOS[1]
+  # Check for SNP with lowest p-value in this region
+  while (current_top != old_top) {
+    old_top <- current_top
+    current_dat <- df %>% filter(GENPOS >= (old_top - dist_bp) &
+                                   GENPOS <= (old_top + dist_bp))
+    current_top <- current_dat$GENPOS[which.min(current_dat$PVALUE)]
+  }
+  return (df[df$GENPOS == current_top, ])
+}
+
+# Apply to all genome-wide sig SNPs
+pruned_snps_full <- lapply(all_snps, function (cdf) {
+  print(unique(cdf$CHROM))
+  dat_to_prune <- cdf
+  pruned_list <- c()
+  dist_prune <- KB_PRUNE*1000
+  # Repeat until there are no loci remaining
+  while (nrow(dat_to_prune) > 0) {
+    res_pruned <- pruneSNPs(dat_to_prune, dist_bp = WINDOW_SIZE)
+    pruned_list <- c(pruned_list, res_pruned$ID)
+    # Remove all SNPs within vicinity of pruned
+    dat_to_prune <- dat_to_prune %>%
+      filter(GENPOS <= (res_pruned$GENPOS - WINDOW_SIZE) |
+               GENPOS >= (res_pruned$GENPOS + WINDOW_SIZE))
+  }
+  # Results data
+  pruned_dat <- cdf %>%
+    filter(ID %in% pruned_list)
+  return (pruned_dat)
+})
+pruned_snps_full <- bind_rows(pruned_snps_full)
 
 # Bland-Altman plots ----
 
