@@ -6,9 +6,9 @@ Cite as:
 
 ## Structure
 
-- *1_phenotype_identification/* - Identify and perform quality control of binary traits (infertility cases and controls) and quantitative traits (hormone values) in the UK Biobank. TODO: UPDATE WITH INFERTILITY
-- *2_GWAS/* - Perform genome-wide association studies across autosomes and the X chromosome, for binary traits and quantitative traits in the UK Biobank, using REGENIE. TODO: UPDATE WITH INFERTILITY
-- *3_meta_analysis/* - Filter and QC individual cohort summary statistics, perform meta-analyses, filter, QC and plot results, and get lead SNPs. TODO: UPDATE WITH INFERTILITY
+- *1_phenotype_identification/* - Identify and perform quality control of binary traits (infertility cases and controls) and quantitative traits (hormone values) in the UK Biobank. 
+- *2_GWAS/* - Perform genome-wide association studies across autosomes and the X chromosome, for binary traits and quantitative traits in the UK Biobank, using REGENIE. 
+- *3_meta_analysis/* - Filter and QC individual cohort summary statistics, perform meta-analyses, filter, QC and plot results, and get lead SNPs. 
 - *4_WES/* - Plot rare-variant and gene-based test results from whole exome sequencing (WES) analyses in the UK Biobank. Scripts to perform WES testing is all documented in Duncan Palmer's repository here - https://github.com/astheeggeggs/BRaVa_curation.
 - *characterise_loci/* - Classify the identified common and rare variants (for hormones) as reported or novel based on previously published associations in the GWAS Catalog. 
 - *colocalisation* - Check for statistical colocalisation between pairs of traits (such as infertility and hormones, or infertility and reproductive disease) as well as between our traits and GTeX eQTLs to identify putative causal genes. TODO: UPDATE WITH GTEX AND INF-VS-HORMONES
