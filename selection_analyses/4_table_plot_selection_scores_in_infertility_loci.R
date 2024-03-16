@@ -31,12 +31,22 @@ sds_scores <- read.table("/well/lindgren/samvida/Resources/selection_scores_publ
                          sep = " ", header = T, stringsAsFactors = F)
 SDS_LOW <- quantile(sds_scores$SDS, 0.025)
 SDS_HIGH <- quantile(sds_scores$SDS, 0.975)
-sds_perc <- ecdf(sort(sds_scores$SDS))
 
 betascan_scores <- read.table("/well/lindgren/samvida/Resources/selection_scores_public/BetaScan2/hg38/all_B2std_hg38.txt",
                               sep = " ", header = T, stringsAsFactors = F)
 BETA_HIGH <- quantile(betascan_scores$Beta2_std, 0.95)
-betascan_perc <- ecdf(sort(betascan_scores$Beta2_std))
+
+# Read scores for GWASCatalog regions only ----
+
+sds_gwascat <- read.table("/well/lindgren/samvida/hormones_infertility/selection_analyses/data/gwascat_sds_scores.txt",
+                         sep = "\t", header = F, stringsAsFactors = F)
+colnames(sds_gwascat) <- colnames(sds_scores)
+sds_perc <- ecdf(sort(sds_gwascat$SDS))
+
+betascan_gwascat <- read.table("/well/lindgren/samvida/hormones_infertility/selection_analyses/data/gwascat_betascan_scores.txt",
+                              sep = "\t", header = F, stringsAsFactors = F)
+colnames(betascan_gwascat) <- colnames(betascan_scores)
+betascan_perc <- ecdf(sort(betascan_gwascat$Beta2_std))
 
 # Function to extract scores for all variants within 10 kb of lead variant ----
 
@@ -221,9 +231,12 @@ infert_selection_scores <- lapply(INFERT_STRATA, function (infert) {
       return (data.frame(rsid = i,
                          n_SDS = nrow(sds_df),
                          min_SDS = min(sds_df$score),
+                         min_SDS_perc = sds_perc(min(sds_df$score)),
                          max_SDS = max(sds_df$score),
+                         max_SDS_perc = sds_perc(max(sds_df$score)),
                          n_beta = nrow(beta_df),
-                         max_beta = max(beta_df$score)))
+                         max_beta = max(beta_df$score),
+                         max_beta_perc = betascan_perc(max(beta_df$score))))
     })
     summ_dat <- bind_rows(summ_dat)
     summ_dat$trait <- infert
