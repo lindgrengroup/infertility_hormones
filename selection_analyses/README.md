@@ -6,6 +6,7 @@ For BetaScan2 (Siewert et al. 2020) and SDS (Field et al. 2016), we have variant
 
 1. **1_prepare_selection_scores.R** - SDS has to be converted to a P-value; BetaScan2 scores have to be normalised and create a P-value.
 2. **2_liftover_selection_scores_hg38.sh** - Selection scores are on the hg19 genome build, lift over to hg38.
-3. **3_table_plot_selection_scores_in_infertility_loci.R** - Assess minimum/maximum selection scores around windows defined by infertility lead variants.
-4. **4_prep_trait_sds.sh** - For analyses where SDS is aligned to the trait-increasing allele rather than the derived allele, so we can test whether the direction of selection is for or against the trait. Plot these using **4_trait_sds_scores_plots.R**.
-	**4_prep_betascan2_scores.sh** - For analyses where the BetaScan2 score is added to the GWAS summary statistics so we can see whether the same variants have high scores for both GWAS and balancing selection. Plot these using **4_betascan2_plots.R**.
+3. **3_get_gwascat_scores.R** - Create a subset of selection scores that are only within +/-10kb of a GWAS Catalog variant in order to match genomic context (as we expect GWAS variants to be nearer genes, which may have different selection pressures).
+4. **4_table_plot_selection_scores_in_infertility_loci.R** - Assess minimum/maximum selection scores around windows defined by infertility lead variants. Calculate percentiles based on comparison to all GWAS Catalog windows.
+5. **5_prep_trait_sds.sh** - For analyses where SDS is aligned to the trait-increasing allele rather than the derived allele, so we can test whether the direction of selection is for or against the trait. Plot these using **6_trait_sds_scores_plots.R**.
+6. **5_prep_betascan2_scores.sh** - For analyses where the BetaScan2 score is added to the GWAS summary statistics so we can see whether the same variants have high scores for both GWAS and balancing selection. Plot these using **6_betascan2_plots.R**.
