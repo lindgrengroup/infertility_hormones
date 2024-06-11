@@ -42,6 +42,7 @@ if (grepl("^chr", GWAS_res$CHROM[1])) {
 }
 # Replace X with 23
 GWAS_res$CHROM[which(GWAS_res$CHROM == "X")] <- 23
+GWAS_res$CHROM[which(GWAS_res$CHROM == "chrX")] <- 23
 GWAS_res$CHROM <- as.numeric(GWAS_res$CHROM)
 
 # Cleaning functions ----
