@@ -70,6 +70,35 @@ for anc in all eur; do
 	gzip sumstats_gwas_catalog/male_infertility_${anc}_sumstats.tsv
 done
 
+# HORMONES
+
+for HR in FSH LH Oestradiol Progesterone Testosterone; do
+	for SS in F M sex_comb; do
+		for ANC in EUR all_anc; do
+
+		done
+	done
+done
+
+# OTHER REPRODUCTIVE DISEASES META-ANALYSED (PCOS, heavy menstrual bleeding, endometriosis, uterine fibroids)
+
+for REPRO in PCOS hmb endometriosis uterine_fibroids; do
+	# old file: 1.RSID 2.CHR 3.POS 4.ALLELE1 5.ALLELE2 6.FREQ1 7.BETA 8.SE 9.PVALUE 10.NCASE 11.NCONTROL 
+	# new file: chromosome base_pair_location effect_allele other_allele beta standard_error effect_allele_frequency p_value rs_id
+
+	awk 'BEGIN{FS=OFS="\t"} { print $2, $3, $4, $5, $7, $8, $6, $9, $1}' \
+	/well/lindgren/samvida/hormones_infertility/colocalisation/sentinel_windows/liftover/${REPRO}_hg38_with_samplesizes.txt \
+	> sumstats_gwas_catalog/${REPRO}_sumstats.tsv
+	
+	sed -i '1s/.*/chromosome\tbase_pair_location\teffect_allele\tother_allele\tbeta\tstandard_error\teffect_allele_frequency\tp_value\trs_id/' \
+	sumstats_gwas_catalog/${REPRO}_sumstats.tsv
+
+	# Validate
+	gwas-ssf validate --errors-out sumstats_gwas_catalog/${REPRO}_sumstats.tsv
+	# gzip
+	gzip sumstats_gwas_catalog/${REPRO}_sumstats.tsv
+done
+
 echo "###########################################################"
 echo "Finished at: "`date`
 echo "###########################################################"
