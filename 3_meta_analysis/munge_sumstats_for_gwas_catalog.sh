@@ -22,7 +22,7 @@ cd /well/lindgren/samvida/hormones_infertility
 
 for anc in all eur; do
 # FEMALE INFERTILITY
-	for analysis_strata in 1..5; do
+	for analysis_strata in {1..5}; do
 		# old file: 1.ID(chrN:pos) 2.RSID 3.Allele1 4.Allele2 5.Freq1 6.FreqSE 7.MinFreq 8.MaxFreq 9.BETA 10.SE 11.PVALUE 12.Direction 13.HetISq 14.HetChiSq 15.HetDf 16.HetPVal 17.N_CASES 18.N_CONTROLS
 		# new file: chromosome base_pair_location effect_allele other_allele beta standard_error effect_allele_frequency p_value variant_id rs_id n_cases n_controls direction HetISq HetChiSq HetDf HetPVal
 		awk 'BEGIN{FS=" "; OFS="\t"} {
