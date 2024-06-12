@@ -83,17 +83,17 @@ full_res <- lapply(INFERT_TRAITS, function (infert) {
       
       # Wrangle AAM results retaining only common >1% markers
       aam_df <- aam_df %>% 
-        mutate(MAF = ifelse(FREQ1 > 0.5, 1-FREQ1, FREQ1),
+        mutate(MAF = ifelse(Effect_Allele_Frequency > 0.5, 1-Effect_Allele_Frequency, Effect_Allele_Frequency),
                varbeta_aam = SE^2,
                N_aam = N) %>%
         filter(MAF >= 0.01) %>%
         rename(MarkerName_aam = RSID,
-               A1_aam = ALLELE1, A2_aam = ALLELE2,
+               A1_aam = Effect_Allele, A2_aam = Other_Allele,
                MAF_aam = MAF, BETA_aam = BETA, 
                PVAL_aam = PVALUE) %>%
         select(all_of(c("MarkerName_aam", "A1_aam", "A2_aam",
                         "MAF_aam", "BETA_aam", "varbeta_aam", 
-                        "PVAL_aam", "casefrac_aam", "N_aam", 
+                        "PVAL_aam", "N_aam", 
                         "markerMatch")))
       
       # Merge 
@@ -128,12 +128,11 @@ applyColoc <- function (df) {
                 pvalues = df$PVAL_aam, 
                 beta = df$BETA_aam, 
                 varbeta = df$varbeta_aam, 
-                MAF = df$MAF_aam, 
-                s = df$casefrac_aam,
+                MAF = df$MAF_aam,
                 N = df$N_aam, type = "quant")
   
   coloc_df <- coloc.abf(dataset1 = d_infert, 
-                        dataset2 = d_repro, p1 = 1e-04, p2 = 1e-04, p12 = 1e-06)
+                        dataset2 = d_aam, p1 = 1e-04, p2 = 1e-04, p12 = 1e-06)
   
   # Extract and append results
   res <- data.frame(nsnps = coloc_df$summary[1],
@@ -150,6 +149,9 @@ applyColoc <- function (df) {
 
 all_coloc_res <- lapply(INFERT_TRAITS, function (infert) {
   per_marker <- lapply(lead_snps$MarkerID, function (snp_id) {
+    # debug
+    cat(paste0("Running: ", infert, " for ", snp_id), "\n")
+    
     df_for_coloc <- full_res[[infert]][[snp_id]]
     if (!is.null(df_for_coloc)) {
       res_df <- applyColoc(df_for_coloc)
