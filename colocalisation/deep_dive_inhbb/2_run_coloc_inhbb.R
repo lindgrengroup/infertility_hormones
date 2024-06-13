@@ -120,10 +120,10 @@ df_plot <- bind_rows(infert_plot, pcos_plot, aam_plot) %>%
   mutate(signif = ifelse(PVALUE <= 5E-08, "gws_sig", "ns"),
          lci = BETA - 1.96*SE, uci = BETA + 1.96*SE)
 
+# Pretty plot
+theme_set(theme_bw())
 colpal_female <- c("#D35C79", "#666666")
 names(colpal_female) <- c("gws_sig", "ns")
-
-#### PRETTIFY THIS PLOT
 
 forest_plot <- ggplot(df_plot, 
                       aes(x = BETA, y = trait,
@@ -140,5 +140,4 @@ forest_plot <- ggplot(df_plot,
 ggsave(paste0(mainpath, "/inhbb_forest_plot.png"), 
        forest_plot, 
        height = 3, width = 3, units = "in")
-
 
