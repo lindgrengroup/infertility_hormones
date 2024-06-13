@@ -64,6 +64,17 @@ chrom_filter <- function (qc_log, dat) {
   return (res)
 }
 
+# MAF filter
+implausible_maf <- function (qc_log, dat) {
+  res <- dat %>% filter(MAF > 0)
+  sink(qc_log, append = T)
+  cat(paste0("\t", 
+             "# SNPs removed with MAF == 0: ", 
+             nrow(dat) - nrow(res), "\n"))
+  sink()
+  return (res)
+}
+
 # Implausibly large standard error (> 10)
 extreme_effect <- function (qc_log, dat) {
   res <- dat %>% filter(StdErr < 10)
@@ -98,6 +109,7 @@ cat(paste0("# SNPs in summary statistics file: ",
 sink()
 
 cleaned <- chrom_filter(log_file, cleaned)
+cleaned <- implausible_maf(log_file, cleaned)
 cleaned <- extreme_effect(log_file, cleaned)
 cleaned <- duplicate_snps(log_file, cleaned)
 
@@ -131,9 +143,6 @@ options(scipen = 0)
 # QQ plots and lambdaGC in each MAF bin ----
 
 gwas_dat <- to_print 
-
-# Replace 0 MAF with 1E-5 for now 
-gwas_dat$MAF[gwas_dat$MAF == 0] <- 1E-5
 
 log_bin_breaks <- ceiling(log10(min(gwas_dat$MAF))):-1
 bin_breaks <- c(0, 10^log_bin_breaks, 1)
