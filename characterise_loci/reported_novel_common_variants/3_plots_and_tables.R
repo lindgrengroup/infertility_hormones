@@ -47,10 +47,10 @@ plotBars <- function (df) {
 }
 
 lapply(HORMONES, function (hr) {
-  for_plot <- classified_lead_snps %>% filter(hormone == hr)
+  for_plot <- classified_lead_snps %>% filter(hormone == hr & sex_strata != "sex_comb")
   
   # Barplots
-  ggsave(paste0(mainpath, "/plots/", hr, "_number_snps_novel_reported.png"),
+  ggsave(paste0(mainpath, "/plots/", hr, "_number_snps_novel_reported_for_manuscript.png"),
          plotBars(for_plot), units = "in", height = 7, width = 7)
 })
 
