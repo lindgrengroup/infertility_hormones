@@ -25,9 +25,12 @@ cd /well/lindgren/samvida/hormones_infertility/meta_results_230613
 
 mkdir lead_snps
 
+head -n 1 add_rsids/${HORMONE}_${SEX_STRATA}_${ANC_GROUP}_with_rsids.txt > \
+lead_snps/gws_variants_${HORMONE}_${SEX_STRATA}_${ANC_GROUP}_with_rsids.txt
+
 awk -F '\t' 'BEGIN {OFS = FS} {if ($12 <= 5E-08) print}' \
-add_rsids/${HORMONE}_${SEX_STRATA}_${ANC_GROUP}_filtered.txt \
-> lead_snps/gws_variants_${HORMONE}_${SEX_STRATA}_${ANC_GROUP}_with_rsids.txt
+add_rsids/${HORMONE}_${SEX_STRATA}_${ANC_GROUP}_with_rsids.txt \
+>> lead_snps/gws_variants_${HORMONE}_${SEX_STRATA}_${ANC_GROUP}_with_rsids.txt
 
 cd lead_snps
 
