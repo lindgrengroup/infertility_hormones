@@ -25,6 +25,12 @@ KEEP_PAIRS <- c(KEEP_PAIRS, "Testosterone_M x male_infertility")
 
 mr_res <- mr(harmonised_dat)
 
+# Test for pleiotropy - add MR Egger intercept
+mr_pleio <- mr_pleiotropy_test(harmonised_dat)
+colnames(mr_pleio) <- c("id.exposure", "id.outcome",
+                        "outcome", "exposure",
+                        "egger_intercept", "egger_intercept_se", "egger_intercept_pval")
+
 sub_mr_res <- mr_res %>% 
   mutate(pair_tested = paste0(exposure, " x ", outcome)) %>%
   filter(pair_tested %in% KEEP_PAIRS)
@@ -34,6 +40,10 @@ sub_mr_res <- sub_mr_res %>%
   group_by(method) %>%
   mutate(pval.fdr = p.adjust(pval, method = "fdr"))
 
-write.table(sub_mr_res, paste0(mainpath, "/results_230627.txt"),
+# Add pleiotropy test results
+sub_mr_res <- inner_join(sub_mr_res,
+                         mr_pleio)
+
+write.table(sub_mr_res, paste0(mainpath, "/results_240621_with_egger_intercept.txt"),
             sep = "\t", row.names = F, quote = F)
 
