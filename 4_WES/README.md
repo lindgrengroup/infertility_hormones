@@ -6,4 +6,10 @@ Scripts in this folder are to assess results from whole exome sequencing (WES) a
 - **concatenate_results.sh** - merge the per-chromosome files into a single file per trait. 
 - **subset_gene_results_significant.R** - to create a table showing the different test (MAF threshold and annotation category) results per gene, for any gene that has a significant (P<5E-06) association with the trait.
 
+Scripts in *./conditioned_on_common/* are in response to a reviewer request to assess the effect of rare variants independent of nearby common variants. Must be run in the following order:
+
+1. **1_subset_signif_rare_variants.sh** - Grab the significant (P<1E-7) rare variant associations across all hormones.
+2. **2_get_nearby_common_variants.sh** - Extract lead SNPs from the relevant GWASs for each phenotype that are within 500kb of each lead variant.
+3. **3_get_dosages_common_variants{_chrX}.sh** - Create plink files for the lead SNPs that need to be conditioned on. These will be fed into the WES analyses that are outlined below, using the --condition flag in SAIGE step 2.
+
 Scripts to perform variant QC, sample QC, determine superpopulation labels, relatedness, and association analyses for WES tests are all documented in Duncan Palmer's repository here: https://github.com/astheeggeggs/BRaVa_curation.

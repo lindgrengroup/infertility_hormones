@@ -87,6 +87,8 @@ write.table(full_dat,
 
 # Prune to get independent lead SNPs across analyses ----
 
+PTHRESH <- 5E-08
+
 all_snps <- full_dat %>%
   filter(PVALUE_F <= PTHRESH | PVALUE_M <= PTHRESH) %>%
   # filter(AF_Tested_F >= 0.01 & AF_Tested_F <= 0.99) %>%
