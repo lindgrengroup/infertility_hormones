@@ -3,6 +3,7 @@
 
 library(tidyverse)
 library(TwoSampleMR)
+library(patchwork) # for plots arrangement
 
 # Read data ----
 
@@ -31,6 +32,37 @@ colnames(mr_pleio) <- c("id.exposure", "id.outcome",
                         "outcome", "exposure",
                         "egger_intercept", "egger_intercept_se", "egger_intercept_pval")
 
+# Scatter plots 
+
+dat_for_plot <- harmonised_dat %>%
+  filter(exposure %in% c("FSH_F", "Testosterone_F") &
+           outcome != "male_infertility")
+mr_for_plot <- mr(dat_for_plot, method_list = c("mr_egger_regression", 
+                                                "mr_ivw",
+                                                "mr_weighted_median"))
+
+theme_set(theme_bw())
+p1 <- mr_scatter_plot(mr_for_plot, dat_for_plot)
+
+fsh_plots <- p1[c(1:5)] 
+testo_plots <- p1[c(6:10)] 
+
+combined_fsh <- wrap_plots(fsh_plots, 
+                           ncol = 2, guides = "collect") & 
+  theme(legend.position = "top")
+
+# Save the combined plot to a file
+ggsave("plots/fsh_on_infertility.png", 
+       combined_fsh, width = 18, height = 27, units = "cm")
+
+combined_testo <- wrap_plots(testo_plots, 
+                           ncol = 2, guides = "collect") & 
+  theme(legend.position = "top")
+
+# Save the combined plot to a file
+ggsave("plots/testo_on_infertility.png", 
+       combined_testo, width = 18, height = 27, units = "cm")
+
 sub_mr_res <- mr_res %>% 
   mutate(pair_tested = paste0(exposure, " x ", outcome)) %>%
   filter(pair_tested %in% KEEP_PAIRS)
@@ -46,4 +78,3 @@ sub_mr_res <- inner_join(sub_mr_res,
 
 write.table(sub_mr_res, paste0(mainpath, "/results_240621_with_egger_intercept.txt"),
             sep = "\t", row.names = F, quote = F)
-
