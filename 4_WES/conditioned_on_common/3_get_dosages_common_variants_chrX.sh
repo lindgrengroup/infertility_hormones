@@ -17,7 +17,7 @@ module load PLINK/2.00a2.3_x86_64
 
 cd /well/lindgren/samvida/hormones_infertility/exome_seq_results/conditioned_on_common
 
-awk -v '$2 == 23 {print $1}' nearby_common_variants/unique_rsids_to_get.txt \
+awk '$2 == 23 {print $1}' nearby_common_variants/unique_rsids_to_get.txt \
 > tmp_chrX_rsids.txt
 
 plink2 \
