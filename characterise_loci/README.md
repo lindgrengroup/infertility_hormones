@@ -2,6 +2,11 @@ Scripts to classify the identified hormone lead variants as reported or novel ba
 
 **get_gwascatalog_hormones_in_1kg_hg38.sh** is a script to subset the variants in GWAS Catalog associated with any of 28 reproductive hormones (list in **all_hormone_traits.txt**). It calls **make_gwascat_bed.R** to create a bed file for variant chromosome and position from the table of associations and then generates a list of all the 1000 Genomes variant ids so they can be compared to the SNPs from our study.
 
+Assessing sex-differential effects:
+
+**sex_heterogeneity.R** is a script to grab all genome-wide significant SNPs across sex-specific analyses to calculate the heterogeneity in effect sizes between men and women. 
+**testosterone_sex_diff_snps.R** was written in response to a reviewer comment on sex differences in the genetic architecture of testosterone. It calculates more metrics (such as cross-sex rG and number of sex-differential SNPs) to compare to a phenome-wide analysis of this type by Bernabeu et al. (2021).
+
 Scripts in *reported_novel_common_variants/*:
 
 Steps for conditional analysis:
