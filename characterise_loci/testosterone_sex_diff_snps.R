@@ -78,9 +78,9 @@ min_axis <- min(c(plot_df$LCI_M, plot_df$LCI_F))
 
 p <- ggplot(plot_df, aes(x = BETA_M, y = BETA_F)) +
   geom_pointrange(aes(xmin = LCI_M, xmax = UCI_M),
-                  size = 0.1, fatten = 2) +
+                  size = 0.3, fatten = 2) +
   geom_pointrange(aes(ymin = LCI_F, ymax = UCI_F),
-                  size = 0.1, fatten = 2) +
+                  size = 0.3, fatten = 2) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   scale_x_continuous(limits = c(min_axis, max_axis)) +
@@ -135,11 +135,11 @@ p <- ggplot(data = plot_df, aes(x = Trait.code,
   labs(y = "Number of sex-differential lead SNPs") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
+        axis.title = element_blank(),
         panel.grid.major.x = element_blank(), 
         panel.grid.minor.x = element_blank())
 ggsave("autosomal_sdsnps.png", p,
-       height = 7.5, width = 15, units = "cm")
+       height = 5, width = 15, units = "cm")
 
 # X-chromosome
 
@@ -162,11 +162,11 @@ p <- ggplot(data = plot_df, aes(x = Trait.code,
   labs(y = "Number of sex-differential lead SNPs") +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
+        axis.title = element_blank(),
         panel.grid.major.x = element_blank(), 
         panel.grid.minor.x = element_blank())
 ggsave("xchr_sdsnps.png", p,
-       height = 7.5, width = 15, units = "cm")
+       height = 5, width = 15, units = "cm")
 
 # Cross-sex rG ----
 
