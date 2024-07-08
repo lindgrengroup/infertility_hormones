@@ -13,6 +13,7 @@ Cite as:
 - *characterise_loci/* - Classify the identified common and rare variants (for hormones) as reported or novel based on previously published associations in the GWAS Catalog. 
 - *colocalisation* - Check for statistical colocalisation between pairs of traits (such as infertility and hormones, or infertility and reproductive disease) as well as between our traits and GTeX eQTLs to identify putative causal genes. TODO: UPDATE WITH GTEX AND INF-VS-HORMONES
 - *combine_wes_gwas* - Compare effect sizes from GWAS meta-analyses with UK Biobank WES analyses for genes reported in both sets of analyses. 
-- *heritability_rg* - LDSC-based analyses to calculate trait heritability, genetic correlations between pairs of traits (including reproductive diseases and the Neale lab UKB-wide phenotypes), and partitioned heritability analyses for tissue-specific and cell-type-specific enrichment. TODO: UPDATE WITH GENE SELECTION OVARY
+- *heritability_rg* - LDSC-based analyses to calculate trait heritability, genetic correlations between pairs of traits (including reproductive diseases and the Neale lab UKB-wide phenotypes), and partitioned heritability analyses for tissue-specific and cell-type-specific enrichment. 
+- *lava_local_rg* - LAVA analyses to calculate local genetic correlation between pairs of traits; added in response to reviewer request.
 - *selection_analyses* - Test for evolutionary selection as measured by CMS, aDNA, and SDS at infertility or hormone loci and vice-versa.
 - *two_sample_mr* - Mendelian randomisation to test for genetically predicted causal effects of obesity and hormone levels on infertility.
