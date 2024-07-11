@@ -4,60 +4,68 @@
 
 library(tidyverse)
 
-# Read in tables of LDSC cross-trait rG
+mainpath <- "/well/lindgren/samvida/hormones_infertility/lava_local"
 
-# between hormones and infertility
-hi_cor <- read.table("/well/lindgren/samvida/hormones_infertility/lava_local/hormones_infertility.rg",
-                     header = T, stringsAsFactors = F)
-hi_cor <- hi_cor[ ,c("p1","p2","gcov_int")]
+# Read data ----
 
-# between hormones or infertility and repro diseases
-repro_cor <- read.table("/well/lindgren/samvida/hormones_infertility/lava_local/repro_traits.rg",
-                        header = T, stringsAsFactors = F)
-repro_cor <- repro_cor[ ,c("p1","p2","gcov_int")]
+# Read mapping table for filename to pheno_name
 
-# Function to create matrix 
+filename_map <- read.table(paste0(mainpath, "/input_sumstats.txt"),
+                           sep = "\t", header = T, stringsAsFactors = F)
+# clean phenotype names
+# replace special characters with "_"
+filename_map$phenotype <- gsub("[^A-Za-z0-9_]", "_", filename_map$phenotype)
+# replace any double-underscores with "_"
+filename_map$phenotype <- gsub("__", "_", filename_map$phenotype)
+# replace uppercase with lowercase
+filename_map$phenotype <- tolower(filename_map$phenotype)
+
+NTARGETS <- nrow(filename_map) - 1
+
+# Read in tables of LDSC cross-trait rG results
+
+ldsc_results <- lapply(0:NTARGETS, function (target) {
+  res <- read.table(paste0(mainpath, "/cross_trait_ldsc/", target, "_vs_all_phenos_rg.r2"),
+                    header = T, stringsAsFactors = F)
+  res <- res[, c("p1", "p2", "gcov_int")]
+  
+  # Replace filenames with phenotype names
+  res$p1 <- filename_map$phenotype[match(res$p1, filename_map$filename)]
+  res$p2 <- filename_map$phenotype[match(res$p2, filename_map$filename)]
+  return (res)
+})
+ldsc_results <- bind_rows(ldsc_results)
+
+# Function to create matrix ----
 
 createCorrMat <- function (gcov_df) {
-  # replace munged filenames with phenotype names
-  gcov_df$p1 <- gsub(".*munged_sumstats/", "" , gcov_df$p1)
-  gcov_df$p1 <- gsub("_for_ldsc.sumstats.gz", "" , gcov_df$p1) 
-  
-  gcov_df$p2 <- gsub(".*munged_sumstats/", "" , gcov_df$p2)
-  gcov_df$p2 <- gsub("_for_ldsc.sumstats.gz", "" , gcov_df$p2) 
-  
   phen <- unique(c(gcov_df$p1, gcov_df$p2))
+  phen <- phen[phen %in% PHENOS]
   n <- length(phen)
   mat <- matrix(NA, n, n)                    # create matrix
   rownames(mat) <- colnames(mat) <- phen    # set col/rownames
   
   for (i in phen) {
     for (j in phen) {
-      #################### FIX THIS !!!!!!!!!!!!!!!!!!!!!!!!!
       print(paste0(i, " x ", j))
       if (i == j) {
         int_val <- 1
       } else {
         int_val <- subset(gcov_df, p1==i & p2==j)$gcov_int
+        if (length(int_val) == 0) {
+          int_val <- subset(gcov_df, p1==j & p2==i)$gcov_int
+        }
       }
       mat[i,j] <- int_val
     }
   }
-  
-  mat[lower.tri(mat)] <- t(mat)[lower.tri(mat)] # sometimes there might be small differences in gcov_int depending on which phenotype was analysed as the outcome / predictor
   mat <- round(cov2cor(mat), 5) # standardise
   return (mat)
 }
 
-# Apply to the hormone-infertility matrix
-hi_mat <- createCorrMat(hi_cor)
-write.table(hi_mat, 
-            "/well/lindgren/samvida/hormones_infertility/lava_local/hormones_infertility_sample_overlap_from_ldsc.txt", 
-            quote = F)   
-
-# Apply to repro mat
-repro_mat <- createCorrMat(repro_cor)
-write.table(repro_mat, 
-            "/well/lindgren/samvida/hormones_infertility/lava_local/repro_traits_sample_overlap_from_ldsc.txt", 
+# Apply to the cross-trait results
+ldsc_mat <- createCorrMat(ldsc_results)
+write.table(ldsc_mat, 
+            "/well/lindgren/samvida/hormones_infertility/lava_local/cross_trait_sample_overlap_from_ldsc.txt", 
             quote = F)   
 
