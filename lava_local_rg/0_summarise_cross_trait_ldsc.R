@@ -20,7 +20,7 @@ filename_map$phenotype <- gsub("__", "_", filename_map$phenotype)
 # replace uppercase with lowercase
 filename_map$phenotype <- tolower(filename_map$phenotype)
 
-NTARGETS <- nrow(filename_map) - 1
+NTARGETS <- nrow(filename_map)-2 # the last trait won't have any associations
 
 # Read in tables of LDSC cross-trait rG results
 
@@ -38,34 +38,28 @@ ldsc_results <- bind_rows(ldsc_results)
 
 # Function to create matrix ----
 
-createCorrMat <- function (gcov_df) {
-  phen <- unique(c(gcov_df$p1, gcov_df$p2))
-  phen <- phen[phen %in% PHENOS]
-  n <- length(phen)
-  mat <- matrix(NA, n, n)                    # create matrix
-  rownames(mat) <- colnames(mat) <- phen    # set col/rownames
-  
-  for (i in phen) {
-    for (j in phen) {
-      print(paste0(i, " x ", j))
-      if (i == j) {
-        int_val <- 1
-      } else {
-        int_val <- subset(gcov_df, p1==i & p2==j)$gcov_int
-        if (length(int_val) == 0) {
-          int_val <- subset(gcov_df, p1==j & p2==i)$gcov_int
-        }
-      }
-      mat[i,j] <- int_val
-    }
-  }
-  mat <- round(cov2cor(mat), 5) # standardise
-  return (mat)
-}
+phen <- unique(c(ldsc_results$p1, ldsc_results$p2))
+n <- length(phen)
+ldsc_mat <- matrix(NA, n, n)                    # create matrix
+rownames(ldsc_mat) <- colnames(ldsc_mat) <- phen    # set col/rownames
 
-# Apply to the cross-trait results
-ldsc_mat <- createCorrMat(ldsc_results)
+for (i in phen) {
+  for (j in phen) {
+    # print(paste0(i, " x ", j))
+    if (i == j) {
+      int_val <- 1
+    } else {
+      int_val <- subset(ldsc_results, p1==i & p2==j)$gcov_int
+      if (length(int_val) == 0) {
+        int_val <- subset(ldsc_results, p1==j & p2==i)$gcov_int
+      }
+    }
+    ldsc_mat[i,j] <- int_val
+  }
+}
+ldsc_mat <- round(cov2cor(ldsc_mat), 5) # standardise
+
 write.table(ldsc_mat, 
-            "/well/lindgren/samvida/hormones_infertility/lava_local/cross_trait_sample_overlap_from_ldsc.txt", 
+            paste0(mainpath, "/cross_trait_sample_overlap_from_ldsc.txt"), 
             quote = F)   
 
