@@ -7,6 +7,8 @@ Scripts in this folder are to assess results from whole exome sequencing (WES) a
 - **get_unweighted_burden_test_betas.R** - to sum over all relevant variants in a group test for the unweighted burden effect size (because SAIGE produces a weighted version) - enables comparison with deCode
 - **subset_gene_results_significant.R** - to create a table showing the different test (MAF threshold and annotation category) results per gene, for any gene that has a significant (P<5E-06) association with the trait.
 
+The latter two scripts are also in *./replication_gh/* to pull out the genes from Genes & Health replication results.
+
 Scripts in *./conditioned_on_common/* are in response to a reviewer request to assess the effect of rare variants independent of nearby common variants. Must be run in the following order:
 
 1. **1_subset_signif_rare_variants.sh** - Grab the significant (P<1E-7) rare variant associations across all hormones.
