@@ -4,6 +4,7 @@ Scripts in this folder are to assess results from whole exome sequencing (WES) a
 2. **2_filter_plot_[gene/variant]_results.R** - QQ and Manhattan plots for gene-based and variant-level tests within each MAF and annotation group. Submit with **2_submit_filter_plot_results.sh** and batch submit across all strata with **batch_submit_filter_plot_results.sh**
 
 - **concatenate_results.sh** - merge the per-chromosome files into a single file per trait. 
+- **get_unweighted_burden_test_betas.R** - to sum over all relevant variants in a group test for the unweighted burden effect size (because SAIGE produces a weighted version) - enables comparison with deCode
 - **subset_gene_results_significant.R** - to create a table showing the different test (MAF threshold and annotation category) results per gene, for any gene that has a significant (P<5E-06) association with the trait.
 
 Scripts in *./conditioned_on_common/* are in response to a reviewer request to assess the effect of rare variants independent of nearby common variants. Must be run in the following order:
