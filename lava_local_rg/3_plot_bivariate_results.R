@@ -28,18 +28,24 @@ INFERT <- c("female_infertility_analysis1", "female_infertility_analysis3",
             "female_infertility_analysis5")
 HORMONES <- c("fsh_f", "testosterone_f", "williams_tsh", "verdiesen_amh")
 REPRO <- c("endometriosis", "hmb", "pcos", "uterine_fibroids", "huber_twinning")
-OBESITY <- ALL_PHENOS[!ALL_PHENOS %in% c(INFERT, HORMONES, REPRO)]
+OBESITY <- c("body_fat_percentage", "body_mass_index_bmi_",
+             "comparative_body_size_at_age_10", 
+             "hip_circumference", "waist_circumference",
+             "weight_change_compared_with_1_year_ago",
+             "weight", "whole_body_fat_mass")
 
-# Only retain phenotype pairs for infertility x trait 
+# Only retain phenotype pairs for infertility x trait (subset of obesity traits)
 
 lava_infert <- lava_bivar %>%
-  filter(phen1 %in% INFERT | phen2 %in% INFERT)
+  filter(phen1 %in% INFERT | phen2 %in% INFERT) %>%
+  filter(phen1 %in% c(INFERT, HORMONES, REPRO, OBESITY) &
+           phen2 %in% c(INFERT, HORMONES, REPRO, OBESITY))
 
 # Add FDR p-value to check significance 
-PTHRESH_BONF <- 0.05/nrow(lava_infert)
+PTHRESH_BONF <- 0.05/nrow(lava_infert) # 4.26E-06
 lava_infert$p_fdr <- p.adjust(lava_infert$p, method = "fdr")
 # Closest p-value to FDR=0.05 
-PTHRESH_FDR <- lava_infert$p[which.min(abs(lava_infert$p_fdr - 0.05))]
+PTHRESH_FDR <- lava_infert$p[which.min(abs(lava_infert$p_fdr - 0.05))] # 9.69E-04
 
 nonsig_col_palette <- c("#A9A9A9", "#D3D3D3")
 names(nonsig_col_palette) <- c("odd_nonsig", "even_nonsig")
@@ -55,7 +61,9 @@ plot_dat <- lava_infert %>%
                                 ifelse(p_fdr < 0.05, "signif", NA))),
          shape_class = ifelse(phen1 %in% HORMONES | phen2 %in% HORMONES, "hormone",
                               ifelse(phen1 %in% REPRO | phen2 %in% REPRO, "repro",
-                                     ifelse(phen1 %in% OBESITY | phen2 %in% OBESITY, "obesity", NA)))) %>%
+                                     ifelse(phen1 %in% OBESITY | phen2 %in% OBESITY, "obesity", NA)))) 
+
+plot_dat <- plot_dat %>%
   # get chromosome length
   group_by(chrom) %>% summarise(chr_len = max(loc) - min(loc)) %>%
   # get chromosome position
@@ -110,23 +118,32 @@ sig_res_follow <- lava_infert %>%
 
 sig_res_follow <- sig_res_follow %>%
   mutate(chrom = gsub(":.*", "", chrpos),
-         chrom = gsub("chr", "", chrom),
+         chrom = as.numeric(gsub("chr", "", chrom)),
          start = gsub("chr.*:", "", chrpos),
          start = gsub("-.*", "", start),
          stop = gsub(".*-", "", chrpos)) %>%
+  # swap phenotypes around for easy labelling later
+  mutate(new_phen1 = ifelse(phen2 %in% INFERT, phen2, phen1),
+         new_phen2 = ifelse(phen2 %in% INFERT, phen1, phen2)) %>%
   arrange(chrom, start, phen1, phen2) %>%
-  mutate(local_rg_ci = paste0(signif(rho, 3), " (", signif(rho.lower, 3), " - ", signif(rho.upper, 3)),
+  mutate(local_rg_ci = paste0(signif(rho, 3), " (", signif(rho.lower, 3), " - ", signif(rho.upper, 3), ")"),
          local_rg_p = signif(p, 3))
 
 sig_write <- sig_res_follow %>%
-  select(all_of(c("chrpos", "phen1", "phen2", 
+  select(all_of(c("chrpos", "new_phen1", "new_phen2", 
                   "local_rg_ci", "local_rg_p", "nsnps")))
 write.table(sig_write, paste0(mainpath, "/infert_vs_all_bivariate_fdrsig_table.txt"),
             sep = "\t", row.names = F, quote = F)
 
 # Write list of loci (chr, start, stop) for multivariate follow-up
+# only if there are more than two traits per target
 
 loci_for_mult <- sig_res_follow %>%
+  group_by(chrpos, new_phen1) %>%
+  mutate(nassocs = n()) %>% filter(nassocs > 1) %>%
+  ungroup()
+
+loci_for_mult <- loci_for_mult %>%
   select(all_of(c("chrom", "start", "stop"))) %>%
   distinct()
 
