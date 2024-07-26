@@ -18,7 +18,7 @@ PTHRESH <- 5E-06
 gene_res <- lapply(hormones_get, function (hr) {
   res <- read.table(gzfile(paste0("replication_GH/GNH.44k_exomes.20240703.value_", hr, ".SAS.SAIGE.gene.txt.gz")),
                     sep = "\t", header = T, stringsAsFactors = F)
-  
+
   sig_genes <- genes_get %>% filter(strata == hormones_og[hr])
   
   sub_genes <- unique(sig_genes$Region)
@@ -90,7 +90,7 @@ GENES_KEEP <- c("ENSG00000196155", "ENSG00000196946")
 gene_res <- lapply(infert_get, function (hr) {
   res <- read.table(gzfile(paste0("replication_GH/GNH.44k_exomes.20240703.", hr, ".SAS.SAIGE.gene.txt.gz")),
                     sep = "\t", header = T, stringsAsFactors = F)
-
+  
   res <- res %>% filter(Region %in% GENES_KEEP) %>%
     filter(Group %in% c("pLoF", "pLoF;damaging_missense_or_protein_altering",
                         "pLoF;damaging_missense_or_protein_altering;other_missense_or_protein_altering;synonymous",
