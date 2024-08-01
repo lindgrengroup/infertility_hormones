@@ -7,7 +7,7 @@
 #SBATCH -p short
 #SBATCH --cpus-per-task=8
 #SBATCH --array=1-20
-#SBATCH -J run_mixer
+#SBATCH -J run_mixer_fit1
 #SBATCH -o /well/lindgren/samvida/hormones_infertility/logs/run_mixer-%j.out
 
 echo `date`: Executing task ${SLURM_ARRAY_TASK_ID} of job ${JOB_ID} on `hostname` as user ${USER}
@@ -16,7 +16,7 @@ echo `date`: Executing task ${SLURM_ARRAY_TASK_ID} of job ${JOB_ID} on `hostname
 
 cd /well/lindgren/samvida/hormones_infertility/mixer_overlap
 
-# pass variables for: pheno1, pheno2, pheno1-sumstats-location, pheno2-sumstats-location
+# pass variables for: pheno & pheno-sumstats-loc
 echo "passing variables..."
 covars=${covars//|/,}
 echo ${covars}
@@ -31,13 +31,8 @@ export EXTRACT="--extract /REF/ldsc/1000G_EUR_Phase3_plink/1000G.EUR.QC.prune_ma
 
 export PYTHON="singularity exec --bind ${ANALYSIS_DIR} --home=$PWD:/home $SIF/mixer.sif python"
 
-$PYTHON /tools/mixer/precimed/mixer.py fit1 $MIXER_COMMON_ARGS $EXTRACT --trait1-file ${pheno1_loc} --out results/${pheno1}.fit.$REP
-$PYTHON /tools/mixer/precimed/mixer.py fit1 $MIXER_COMMON_ARGS $EXTRACT --trait1-file ${pheno2_loc} --out results/${pheno2}.fit.$REP
-$PYTHON /tools/mixer/precimed/mixer.py fit2 $MIXER_COMMON_ARGS $EXTRACT --trait1-file ${pheno1_loc} --trait2-file ${pheno2_loc} --trait1-params results/${pheno1}.fit.$REP.json --trait2-params results/${pheno2}.fit.$REP.json --out results/${pheno1}_vs_${pheno2}.fit.$REP
-
-$PYTHON /tools/mixer/precimed/mixer.py test1 $MIXER_COMMON_ARGS --trait1-file ${pheno1_loc} --load-params results/${pheno1}.fit.$REP.json --out results/${pheno1}.test.$REP
-$PYTHON /tools/mixer/precimed/mixer.py test1 $MIXER_COMMON_ARGS --trait1-file ${pheno2_loc} --load-params results/${pheno2}.fit.$REP.json --out results/${pheno2}.test.$REP
-$PYTHON /tools/mixer/precimed/mixer.py test2 $MIXER_COMMON_ARGS --trait1-file ${pheno1_loc} --trait2-file ${pheno2_loc} --load-params results/${pheno1}_vs_${pheno2}.fit.$REP.json --out results/${pheno1}_vs_${pheno2}.test.$REP
+$PYTHON /tools/mixer/precimed/mixer.py fit1 $MIXER_COMMON_ARGS $EXTRACT --trait1-file ${pheno_loc} --out results/${pheno}.fit.$REP
+$PYTHON /tools/mixer/precimed/mixer.py test1 $MIXER_COMMON_ARGS --trait1-file ${pheno_loc} --load-params results/${pheno}.fit.$REP.json --out results/${pheno}.test.$REP
 
 echo "###########################################################"
 echo "Finished at: "`date`

@@ -37,7 +37,7 @@ GWAS_res <- GWAS_res %>%
   tidyr::separate(ci, into = c("lci", "uci"), sep = ",") %>%
   mutate(other_allele = ifelse(ea == ref, alt, ref),
          beta = log(or), lci = log(as.numeric(lci)), uci = log(as.numeric(uci)),
-         se = mean(c(beta - lci, uci - beta))/1.96) 
+         se = (uci - lci)/(1.96*2)) 
 
 STANDARDISED_COLNAMES <- c("CHROM", "GENPOS", 
                            "ALLELE1", "ALLELE0", "A1FREQ",
