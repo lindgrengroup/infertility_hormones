@@ -23,3 +23,6 @@ Code-lists for hormones are in the folder *code_lists/*, including:
 
 Files required for quality control are in the folder *qc/*, including:
 - Minimum and maximum values of biomarkers available from UKB main assessment centre measurements in **ukb_min_max.txt**
+
+In response to reviewers requests, the following script was added:
+- **check_age_menopause.R** - to check the age at menopause distributions in women with/without FSH & LH measurements so we know how worried we should be about ascertainment.
