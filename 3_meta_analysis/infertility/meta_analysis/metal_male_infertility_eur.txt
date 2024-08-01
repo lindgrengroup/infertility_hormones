@@ -67,19 +67,19 @@ PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/Danes/Danes_
 
 # PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/DeCODE/DeCODE_male_infertility_for_metal.txt
 
-# Process Genes and Health
-# SEPARATOR WHITESPACE     
-# MARKERLABEL markername
-# ALLELELABELS ALLELE1 ALLELE0
-# EFFECTLABEL BETA
-# STDERRLABEL SE
-# FREQLABEL A1FREQ
-# LABEL N_CASES as n_cases
-# LABEL N_CONTROLS as n_controls
+# Process MVP
+SEPARATOR TAB     
+MARKERLABEL ID
+ALLELELABELS ALLELE1 ALLELE0
+EFFECTLABEL BETA
+STDERRLABEL SE
+FREQLABEL A1FREQ
+LABEL N_CASES as NCASES
+LABEL N_CONTROLS as NCONTROLS
 
-# PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/GandH/GandH_male_infertility_for_metal.txt
+PROCESSFILE /well/lindgren/samvida/hormones_infertility/public_sumstats/male_infertility/filtered/MVP_male_infertility_EUR_filtered.txt
 
 REMOVEFILTERS
-OUTFILE /well/lindgren/laura/projects/infertility/meta_analysis/MA_June2023/results/male_infertility_eur .out
+OUTFILE /well/lindgren/samvida/hormones_infertility/infertility_meta_mvp/male_infertility_EUR .out
 ANALYZE HETEROGENEITY
 CLEAR

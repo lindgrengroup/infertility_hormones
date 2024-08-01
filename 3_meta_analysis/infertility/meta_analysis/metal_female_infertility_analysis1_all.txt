@@ -79,7 +79,19 @@ LABEL N_CONTROLS as n_controls
 
 PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/GandH/GandH_female_infertility_analysis1_for_metal.txt
 
+# Process MVP
+SEPARATOR TAB     
+MARKERLABEL ID
+ALLELELABELS ALLELE1 ALLELE0
+EFFECTLABEL BETA
+STDERRLABEL SE
+FREQLABEL A1FREQ
+LABEL N_CASES as NCASES
+LABEL N_CONTROLS as NCONTROLS
+
+PROCESSFILE /well/lindgren/samvida/hormones_infertility/public_sumstats/female_infertility_analysis1/filtered/MVP_female_infertility_analysis1_all_filtered.txt
+
 REMOVEFILTERS
-OUTFILE /well/lindgren/laura/projects/infertility/meta_analysis/MA_June2023/results/female_infertility_analysis1_all .out
+OUTFILE /well/lindgren/samvida/hormones_infertility/infertility_meta_mvp/female_infertility_analysis1_all .out
 ANALYZE HETEROGENEITY
 CLEAR

@@ -37,7 +37,7 @@ GWAS_res <- GWAS_res %>%
   tidyr::separate(ci, into = c("lci", "uci"), sep = ",") %>%
   mutate(other_allele = ifelse(ea == ref, alt, ref),
          beta = log(or), lci = log(as.numeric(lci)), uci = log(as.numeric(uci)),
-         se = mean(c(or - lci, uci - or))/1.96) 
+         se = mean(c(beta - lci, uci - beta))/1.96) 
 
 STANDARDISED_COLNAMES <- c("CHROM", "GENPOS", 
                            "ALLELE1", "ALLELE0", "A1FREQ",
@@ -124,7 +124,7 @@ info_filter <- function (qc_log, dat) {
   return (res)
 }
 
-# INFO score 
+# MAF filter for the multi-ancestry meta analysis with inflation
 maf_filter <- function (qc_log, dat) {
   res <- dat %>% filter(MAF >= 0.01)
   sink(qc_log, append = T)
@@ -185,7 +185,7 @@ cleaned <- acgt_filter(log_file, cleaned)
 if (!all(is.na(cleaned$INFO))) {
   cleaned <- info_filter(log_file, cleaned)
 }
-if (grepl("META", args$inputFileName)) {
+if (grepl("META", study_desc$inputFileName)) {
   cleaned <- maf_filter(log_file, cleaned)
 }
 cleaned <- extreme_effect(log_file, cleaned)
@@ -199,9 +199,11 @@ sink()
 
 # Print file formatted for METAL ----
 
-# Sort results by chromosome and position and rename SNP to "chrN:pos"
+# Sort results by chromosome and position and rename SNP to "N:pos:major_minor"
 cleaned <- cleaned %>% arrange(CHROM, GENPOS) %>%
-  mutate(ID = paste0("chr", CHROM, ":", GENPOS, ":", ALLELE1, "_", ALLELE0))
+  mutate(major_allele = ifelse(A1FREQ <= 0.5, ALLELE0, ALLELE1),
+         minor_allele = ifelse(A1FREQ <= 0.5, ALLELE1, ALLELE0),
+         ID = paste0(CHROM, ":", GENPOS, ":", major_allele, "_", minor_allele))
 
 to_print <- cleaned[, c("ID", "CHROM", "GENPOS", 
                         "ALLELE1", "ALLELE0", "A1FREQ", "MAF", 
@@ -213,138 +215,138 @@ write.table(to_print,
             sep = "\t", row.names = F, quote = F)
 options(scipen = 0)
 
-# QQ plots and lambdaGC in each MAF bin ----
-
-gwas_dat <- to_print
-
-if (!all(is.na(gwas_dat$MAF))) {
-  log_bin_breaks <- ceiling(log10(min(gwas_dat$MAF))):-1
-  bin_breaks <- c(0, 10^log_bin_breaks, 1)
-  if (length(bin_breaks) == 3) {
-    bin_labels <- c("<10%", ">=10%")
-  } else if (length(bin_breaks) == 4) {
-    bin_labels <- c("<1%", "[1% - 10%)", ">=10%")
-  } else if (length(bin_breaks) == 5) {
-    bin_labels <- c("<0.1%", "[0.1% - 1%)", "[1% - 10%)", ">=10%")
-  } else {
-    # There are very rare variants
-    bin_breaks <- c(0, 0.0001, 0.001, 0.01, 0.1, 1)
-    bin_labels <- c("<0.01%", "[0.01% - 0.1%)", "[0.1% - 1%)", "[1% - 10%)", ">=10%")
-  } 
-  gwas_dat$MAF_bin <- cut(gwas_dat$MAF, 
-                          breaks = bin_breaks, labels = bin_labels,
-                          include.lowest = T)
-} else {
-  bin_labels <- "no_MAF_available"
-  gwas_dat$MAF_bin <- "no_MAF_available"
-}
-
-# QQ plots and lambdaGC in each MAF bin ----
-
-getNegLogObsExp <- function (observed_pvals) {
-  # Get expected p-values
-  obs_pvals <- sort(observed_pvals)
-  neglog_obs <- -log10(obs_pvals)
-  exp_pvals <- (1:length(obs_pvals) - 0.5)/length(obs_pvals)
-  neglog_exp <- -log10(exp_pvals)
-  
-  # CI based on the beta distribution
-  # parameters: a = k, b = n-k where k=seq(1, n)
-  k <- 1:length(obs_pvals)
-  beta_lci <- qbeta(0.025, k, length(obs_pvals)-k)
-  beta_uci <- qbeta(0.975, k, length(obs_pvals)-k)
-  
-  # Flip lci and uci for -log10
-  plot_qq <- data.frame(obs = neglog_obs, exp = neglog_exp,
-                        lci = -log10(beta_uci), uci = -log10(beta_lci))
-  return (plot_qq)
-}
-
-qq_per_bin <- lapply(bin_labels, function (mb) {
-  dat_for_plot <- gwas_dat %>% 
-    filter(MAF_bin == mb & !is.na(PVALUE) & PVALUE > 0)
-  
-  # Get lambdaGC
-  chisq_use <- qchisq(1 - dat_for_plot$PVALUE, 1)
-  lambdaGC <- median(chisq_use) / qchisq(0.5, 1)
-  
-  qq_df <- getNegLogObsExp(dat_for_plot$PVALUE)
-  
-  plot_res <- ggplot(qq_df, 
-                     aes(x = exp, y = obs)) +
-    geom_ribbon(aes(ymin = lci, ymax = uci), 
-                fill = "grey", alpha = 0.5) +
-    geom_point() +
-    geom_abline(intercept = 0, slope = 1) +
-    labs(title = paste0(mb, ", lambdaGC = ", round(lambdaGC,3)),
-         x = "Expected -log10(P)", y = "Observed -log10(P)")
-  return (plot_res)
-})
-
-if (length(qq_per_bin) <= 4) {
-  full_plot <- ggarrange(plotlist = qq_per_bin, nrow = 2, ncol = 2)
-  ggsave(paste0(main_filepath, "/", study_desc$outPlotDir, "/qq_plots.png"),
-         full_plot, units = "in", height = 7, width = 7)
-} else {
-  full_plot <- ggarrange(plotlist = qq_per_bin, nrow = 2, ncol = 3)
-  ggsave(paste0(main_filepath, "/", study_desc$outPlotDir, "/qq_plots.png"),
-         full_plot, units = "in", height = 7, width = 14)
-}
-
-# Manhattan plots ----
-
-col_palette <- c("#A4A4A4", "#A6E8F5", "#D35C79", "#009593")
-names(col_palette) <- c("odd_nonsig", "even_nonsig", 
-                        "signif", "signif_low_MAF")
-
-sub_gwas <- gwas_dat
-max_ncases_plot <- max(gwas_dat$NCASES)
-min_ncontrols_plot <- max(gwas_dat$NCONTROLS)
-
-sub_gwas <- sub_gwas %>% 
-  # get chromosome length
-  group_by(CHROM) %>% summarise(chr_len = as.numeric(max(GENPOS))) %>%
-  # get chromosome position
-  mutate(tot = as.numeric(cumsum(chr_len) - chr_len)) %>% select(-chr_len) %>%
-  # add to original results dataset
-  left_join(sub_gwas, ., by = c("CHROM" = "CHROM")) %>%
-  # add cumulative position of each SNP
-  arrange(CHROM, GENPOS) %>% mutate(BP_pos = as.numeric(GENPOS + tot)) 
-
-# Add highlight and annotation information
-if (!all(is.na(gwas_dat$MAF))) {
-  sub_gwas <- sub_gwas %>%
-    mutate(status = ifelse(CHROM %% 2 == 0 & PVALUE >= 5e-8, "even_nonsig",
-                           ifelse(CHROM %% 2 != 0 & PVALUE >= 5e-8, "odd_nonsig",
-                                  ifelse(PVALUE < 5e-8 & MAF >= 0.01, "signif", 
-                                         ifelse(PVALUE < 5e-8 & MAF < 0.01, "signif_low_MAF", NA)))))
-} else {
-  sub_gwas <- sub_gwas %>%
-    mutate(status = ifelse(CHROM %% 2 == 0 & PVALUE >= 5e-8, "even_nonsig",
-                           ifelse(CHROM %% 2 != 0 & PVALUE >= 5e-8, "odd_nonsig",
-                                  ifelse(PVALUE < 5e-8, "signif", NA))))
-}
-
-# Axis should just show chromosome number
-axisdf <- sub_gwas %>% group_by(CHROM) %>% 
-  summarise(centre = (max(BP_pos) + min(BP_pos)) / 2)
-
-# Plot
-manhattan_plot <- ggplot(sub_gwas, aes(x = BP_pos, y = -log10(PVALUE)),
-                         fill = status, colour = status) +
-  geom_point(data = sub_gwas %>% filter(status %in% c("even_nonsig", "odd_nonsig")), 
-             aes(fill = status, colour = status), shape = 19, size = 1) +
-  geom_point(data = sub_gwas %>% filter(!status %in% c("even_nonsig", "odd_nonsig")), 
-             aes(fill = status, colour = status), shape = 19, size = 1.5) +
-  geom_hline(yintercept = -log10(5e-8), linetype = "dashed") +
-  scale_colour_manual(values = col_palette, guide = "none") +
-  scale_fill_manual(values = col_palette, guide = "none") +
-  scale_x_continuous(label = axisdf$CHROM, breaks = axisdf$centre) +
-  scale_y_continuous(limits = c(0, NA)) +
-  labs(title = paste0("Ncases = ", max_ncases_plot, ", Ncontrols = ", max_ncontrols_plot)) +
-  theme(panel.border = element_blank(),
-        panel.grid.major.x = element_blank(), 
-        panel.grid.minor.x = element_blank())
-
-ggsave(paste0(main_filepath, "/", study_desc$outPlotDir, "/manhattan.png"),
-       width = 14, height = 7, units = "in", manhattan_plot)
+# # QQ plots and lambdaGC in each MAF bin ----
+# 
+# gwas_dat <- to_print
+# 
+# if (!all(is.na(gwas_dat$MAF))) {
+#   log_bin_breaks <- ceiling(log10(min(gwas_dat$MAF))):-1
+#   bin_breaks <- c(0, 10^log_bin_breaks, 1)
+#   if (length(bin_breaks) == 3) {
+#     bin_labels <- c("<10%", ">=10%")
+#   } else if (length(bin_breaks) == 4) {
+#     bin_labels <- c("<1%", "[1% - 10%)", ">=10%")
+#   } else if (length(bin_breaks) == 5) {
+#     bin_labels <- c("<0.1%", "[0.1% - 1%)", "[1% - 10%)", ">=10%")
+#   } else {
+#     # There are very rare variants
+#     bin_breaks <- c(0, 0.0001, 0.001, 0.01, 0.1, 1)
+#     bin_labels <- c("<0.01%", "[0.01% - 0.1%)", "[0.1% - 1%)", "[1% - 10%)", ">=10%")
+#   } 
+#   gwas_dat$MAF_bin <- cut(gwas_dat$MAF, 
+#                           breaks = bin_breaks, labels = bin_labels,
+#                           include.lowest = T)
+# } else {
+#   bin_labels <- "no_MAF_available"
+#   gwas_dat$MAF_bin <- "no_MAF_available"
+# }
+# 
+# # QQ plots and lambdaGC in each MAF bin ----
+# 
+# getNegLogObsExp <- function (observed_pvals) {
+#   # Get expected p-values
+#   obs_pvals <- sort(observed_pvals)
+#   neglog_obs <- -log10(obs_pvals)
+#   exp_pvals <- (1:length(obs_pvals) - 0.5)/length(obs_pvals)
+#   neglog_exp <- -log10(exp_pvals)
+#   
+#   # CI based on the beta distribution
+#   # parameters: a = k, b = n-k where k=seq(1, n)
+#   k <- 1:length(obs_pvals)
+#   beta_lci <- qbeta(0.025, k, length(obs_pvals)-k)
+#   beta_uci <- qbeta(0.975, k, length(obs_pvals)-k)
+#   
+#   # Flip lci and uci for -log10
+#   plot_qq <- data.frame(obs = neglog_obs, exp = neglog_exp,
+#                         lci = -log10(beta_uci), uci = -log10(beta_lci))
+#   return (plot_qq)
+# }
+# 
+# qq_per_bin <- lapply(bin_labels, function (mb) {
+#   dat_for_plot <- gwas_dat %>% 
+#     filter(MAF_bin == mb & !is.na(PVALUE) & PVALUE > 0)
+#   
+#   # Get lambdaGC
+#   chisq_use <- qchisq(1 - dat_for_plot$PVALUE, 1)
+#   lambdaGC <- median(chisq_use) / qchisq(0.5, 1)
+#   
+#   qq_df <- getNegLogObsExp(dat_for_plot$PVALUE)
+#   
+#   plot_res <- ggplot(qq_df, 
+#                      aes(x = exp, y = obs)) +
+#     geom_ribbon(aes(ymin = lci, ymax = uci), 
+#                 fill = "grey", alpha = 0.5) +
+#     geom_point() +
+#     geom_abline(intercept = 0, slope = 1) +
+#     labs(title = paste0(mb, ", lambdaGC = ", round(lambdaGC,3)),
+#          x = "Expected -log10(P)", y = "Observed -log10(P)")
+#   return (plot_res)
+# })
+# 
+# if (length(qq_per_bin) <= 4) {
+#   full_plot <- ggarrange(plotlist = qq_per_bin, nrow = 2, ncol = 2)
+#   ggsave(paste0(main_filepath, "/", study_desc$outPlotDir, "/qq_plots.png"),
+#          full_plot, units = "in", height = 7, width = 7)
+# } else {
+#   full_plot <- ggarrange(plotlist = qq_per_bin, nrow = 2, ncol = 3)
+#   ggsave(paste0(main_filepath, "/", study_desc$outPlotDir, "/qq_plots.png"),
+#          full_plot, units = "in", height = 7, width = 14)
+# }
+# 
+# # Manhattan plots ----
+# 
+# col_palette <- c("#A4A4A4", "#A6E8F5", "#D35C79", "#009593")
+# names(col_palette) <- c("odd_nonsig", "even_nonsig", 
+#                         "signif", "signif_low_MAF")
+# 
+# sub_gwas <- gwas_dat
+# max_ncases_plot <- max(gwas_dat$NCASES)
+# min_ncontrols_plot <- max(gwas_dat$NCONTROLS)
+# 
+# sub_gwas <- sub_gwas %>% 
+#   # get chromosome length
+#   group_by(CHROM) %>% summarise(chr_len = as.numeric(max(GENPOS))) %>%
+#   # get chromosome position
+#   mutate(tot = as.numeric(cumsum(chr_len) - chr_len)) %>% select(-chr_len) %>%
+#   # add to original results dataset
+#   left_join(sub_gwas, ., by = c("CHROM" = "CHROM")) %>%
+#   # add cumulative position of each SNP
+#   arrange(CHROM, GENPOS) %>% mutate(BP_pos = as.numeric(GENPOS + tot)) 
+# 
+# # Add highlight and annotation information
+# if (!all(is.na(gwas_dat$MAF))) {
+#   sub_gwas <- sub_gwas %>%
+#     mutate(status = ifelse(CHROM %% 2 == 0 & PVALUE >= 5e-8, "even_nonsig",
+#                            ifelse(CHROM %% 2 != 0 & PVALUE >= 5e-8, "odd_nonsig",
+#                                   ifelse(PVALUE < 5e-8 & MAF >= 0.01, "signif", 
+#                                          ifelse(PVALUE < 5e-8 & MAF < 0.01, "signif_low_MAF", NA)))))
+# } else {
+#   sub_gwas <- sub_gwas %>%
+#     mutate(status = ifelse(CHROM %% 2 == 0 & PVALUE >= 5e-8, "even_nonsig",
+#                            ifelse(CHROM %% 2 != 0 & PVALUE >= 5e-8, "odd_nonsig",
+#                                   ifelse(PVALUE < 5e-8, "signif", NA))))
+# }
+# 
+# # Axis should just show chromosome number
+# axisdf <- sub_gwas %>% group_by(CHROM) %>% 
+#   summarise(centre = (max(BP_pos) + min(BP_pos)) / 2)
+# 
+# # Plot
+# manhattan_plot <- ggplot(sub_gwas, aes(x = BP_pos, y = -log10(PVALUE)),
+#                          fill = status, colour = status) +
+#   geom_point(data = sub_gwas %>% filter(status %in% c("even_nonsig", "odd_nonsig")), 
+#              aes(fill = status, colour = status), shape = 19, size = 1) +
+#   geom_point(data = sub_gwas %>% filter(!status %in% c("even_nonsig", "odd_nonsig")), 
+#              aes(fill = status, colour = status), shape = 19, size = 1.5) +
+#   geom_hline(yintercept = -log10(5e-8), linetype = "dashed") +
+#   scale_colour_manual(values = col_palette, guide = "none") +
+#   scale_fill_manual(values = col_palette, guide = "none") +
+#   scale_x_continuous(label = axisdf$CHROM, breaks = axisdf$centre) +
+#   scale_y_continuous(limits = c(0, NA)) +
+#   labs(title = paste0("Ncases = ", max_ncases_plot, ", Ncontrols = ", max_ncontrols_plot)) +
+#   theme(panel.border = element_blank(),
+#         panel.grid.major.x = element_blank(), 
+#         panel.grid.minor.x = element_blank())
+# 
+# ggsave(paste0(main_filepath, "/", study_desc$outPlotDir, "/manhattan.png"),
+#        width = 14, height = 7, units = "in", manhattan_plot)

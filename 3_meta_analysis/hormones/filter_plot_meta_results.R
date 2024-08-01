@@ -44,9 +44,16 @@ if ("Freq1" %in% colnames(GWAS_res)) {
 
 # Extract chromosome and position from MarkerName column 
 
-cleaned <- GWAS_res %>%
-  mutate(CHROM = gsub("chr", "", gsub(":.*", "", MarkerName)),
-         GENPOS = as.numeric(gsub(".*:", "", MarkerName)))
+if (grepl("infertility", args$inputFile)) {
+  cleaned <- GWAS_res %>%
+    mutate(CHROM = gsub(":.*", "", MarkerName))
+  cleaned$GENPOS <- as.numeric(unlist(lapply(strsplit(cleaned$MarkerName, ":"), 
+                                             function (x) x[2])))
+} else {
+  cleaned <- GWAS_res %>%
+    mutate(CHROM = gsub("chr", "", gsub(":.*", "", MarkerName)),
+           GENPOS = as.numeric(gsub(".*:", "", MarkerName)))
+}
 # Replace chromosome X with 23
 cleaned$CHROM[which(cleaned$CHROM == "X")] <- 23
 cleaned$CHROM <- as.numeric(cleaned$CHROM)

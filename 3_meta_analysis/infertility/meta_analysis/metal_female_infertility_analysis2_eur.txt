@@ -67,18 +67,6 @@ LABEL N_CONTROLS as n_controls
 
 PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/DeCODE/DeCODE_female_infertility_analysis2_for_metal.txt
 
-# Process Genes and Health
-# SEPARATOR WHITESPACE     
-# MARKERLABEL markername
-# ALLELELABELS ALLELE1 ALLELE0
-# EFFECTLABEL BETA
-# STDERRLABEL SE
-# FREQLABEL A1FREQ
-# LABEL N_CASES as n_cases
-# LABEL N_CONTROLS as n_controls
-
-# PROCESSFILE /well/lindgren/laura/projects/infertility/meta_analysis/GandH/GandH_female_infertility_analysis2_for_metal.txt
-
 REMOVEFILTERS
 OUTFILE /well/lindgren/laura/projects/infertility/meta_analysis/MA_June2023/results/female_infertility_analysis2_eur .out
 ANALYZE HETEROGENEITY
