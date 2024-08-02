@@ -63,14 +63,17 @@ sink()
 # Test for difference in means between groups (with/without FSH & with/without LH) -----
 
 # We want a non-parametric test as age at menopause is not normally distributed
+# also try a t-test because it's better powered and the deviation from normality is not huge
 
 no_fsh <- dat_plot %>% filter(!has_FSH)
 no_lh <- dat_plot %>% filter(!has_LH)
 
 # fsh
-test_fsh <- wilcox.test(no_fsh$age_at_menopause, fsh_dat$age_at_menopause)
+# test_fsh <- wilcox.test(no_fsh$age_at_menopause, fsh_dat$age_at_menopause)
+test_fsh <- t.test(no_fsh$age_at_menopause, fsh_dat$age_at_menopause)
 # lh
-test_lh <- wilcox.test(no_lh$age_at_menopause, lh_dat$age_at_menopause)
+# test_lh <- wilcox.test(no_lh$age_at_menopause, lh_dat$age_at_menopause)
+test_lh <- t.test(no_lh$age_at_menopause, lh_dat$age_at_menopause)
 
 sink(qc_log, append = T)
 cat(paste0("# P-value for difference between those with & without FSH: ", 
@@ -96,6 +99,7 @@ p1 <- ggplot(no_hr, aes(x = age_at_menopause)) +
                  position = "identity", alpha = 0.2, binwidth = 1,
                  colour = meno_colpalette["no_hormone"],
                  fill = meno_colpalette["no_hormone"]) +
+  geom_vline(xintercept = mean(no_hr$age_at_menopause), linetype = "dashed") +
   scale_x_continuous(limits = c(xmin, xmax)) +
   labs(x = "Age at menopause")
 p2 <- ggplot(fsh_dat, aes(x = age_at_menopause)) +
@@ -103,6 +107,7 @@ p2 <- ggplot(fsh_dat, aes(x = age_at_menopause)) +
                  position = "identity", alpha = 0.2, binwidth = 1,
                  colour = meno_colpalette["has_hormone"],
                  fill = meno_colpalette["has_hormone"]) +
+  geom_vline(xintercept = mean(fsh_dat$age_at_menopause), linetype = "dashed") +
   scale_x_continuous(limits = c(xmin, xmax)) +
   labs(x = "Age at menopause")
 p3 <- ggplot(lh_dat, aes(x = age_at_menopause)) +
@@ -110,6 +115,7 @@ p3 <- ggplot(lh_dat, aes(x = age_at_menopause)) +
                  position = "identity", alpha = 0.2, binwidth = 1,
                  colour = meno_colpalette["has_hormone"],
                  fill = meno_colpalette["has_hormone"]) +
+  geom_vline(xintercept = mean(lh_dat$age_at_menopause), linetype = "dashed") +
   scale_x_continuous(limits = c(xmin, xmax)) +
   labs(x = "Age at menopause")
 
