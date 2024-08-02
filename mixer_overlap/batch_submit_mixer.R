@@ -8,10 +8,31 @@ main_filepath <- "/well/lindgren/samvida/hormones_infertility"
 input_phenos <- read.table(paste0(main_filepath, "/mixer_overlap/input_sumstats.txt"),
                            sep = "\t", header = T, stringsAsFactors = F)
 
-# The first 13 phenotypes are the target (hormones, infertility, repro traits)
-# everything else is obesity, which we don't want to run against other types of obesity
+# Run fit 1 
+submission_script <- paste0(main_filepath, "/scripts/run_mixer_fit1.sh")
 
-submission_script <- paste0(main_filepath, "/scripts/run_mixer.sh")
+for (i in 1:nrow(input_phenos)) {
+    pheno <- input_phenos$phenotype[i]
+    pheno_loc <- input_phenos$filename[i]
+    
+    job_options <- paste0(
+      "--export=",
+      paste0(
+        "pheno=\"", pheno, "\",",
+        "pheno_loc=\"", pheno_loc, "\""
+      )
+    )
+    job_submission <- paste("sbatch", job_options, submission_script)
+    system(job_submission)
+    print(job_submission)
+    
+}
+
+# Run fit 2
+
+# The first 3 phenotypes (infertility) are the target
+
+submission_script <- paste0(main_filepath, "/scripts/run_mixer_fit2.sh")
 
 for (i in 1:3) {
   for (j in 4:nrow(input_phenos)) {
