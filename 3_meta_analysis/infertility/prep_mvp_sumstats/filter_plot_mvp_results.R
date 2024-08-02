@@ -185,9 +185,7 @@ cleaned <- acgt_filter(log_file, cleaned)
 if (!all(is.na(cleaned$INFO))) {
   cleaned <- info_filter(log_file, cleaned)
 }
-if (grepl("META", study_desc$inputFileName)) {
-  cleaned <- maf_filter(log_file, cleaned)
-}
+cleaned <- maf_filter(log_file, cleaned)
 cleaned <- extreme_effect(log_file, cleaned)
 cleaned <- implausible_pval(log_file, cleaned)
 cleaned <- duplicate_snps(log_file, cleaned)
