@@ -5,7 +5,7 @@
 
 #SBATCH -A lindgren.prj
 #SBATCH -p short
-#SBATCH -c 3
+#SBATCH -c 1
 #SBATCH -J check_mvp_eur_maf
 #SBATCH -o /well/lindgren/samvida/hormones_infertility/logs/check_mvp_eur_maf-%j.out
 

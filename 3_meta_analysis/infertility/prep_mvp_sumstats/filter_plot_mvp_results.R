@@ -24,19 +24,21 @@ study_desc <- all_study_desc[as.numeric(args$index), ]
 dir.create(paste0(main_filepath, "/", study_desc$outPlotDir))
 
 GWAS_res <- read.table(paste0(main_filepath, "/", study_desc$inputFileName), 
-                         sep = "\t",
-                         header = T,
-                         stringsAsFactors = F, comment.char = "@")
+                       sep = "\t",
+                       header = T,
+                       stringsAsFactors = F, comment.char = "@")
+
+# Get effect and other allele from existing MA
+marker_ids <- read.table(paste0("/well/lindgren/laura/projects/infertility/meta_analysis/MA_June2023/process/",
+                                study_desc$PHENOTYPE, "_all_MA_results_chr_pos.txt"),
+                         sep = "\t", header = T, stringsAsFactors = F)$MarkerName
 
 # Wrangle data for cleaning ----
 
-# 0. get "other allele" from ref/alt/ea,
-# convert OR to beta and CI to SE (SE is the mean of the difference between bounds)
-
+# 0. convert OR to beta and CI to SE (SE is the mean of the difference between bounds)
 GWAS_res <- GWAS_res %>%
   tidyr::separate(ci, into = c("lci", "uci"), sep = ",") %>%
-  mutate(other_allele = ifelse(ea == ref, alt, ref),
-         beta = log(or), lci = log(as.numeric(lci)), uci = log(as.numeric(uci)),
+  mutate(beta = log(or), lci = log(as.numeric(lci)), uci = log(as.numeric(uci)),
          se = (uci - lci)/(1.96*2)) 
 
 STANDARDISED_COLNAMES <- c("CHROM", "GENPOS", 
@@ -45,7 +47,7 @@ STANDARDISED_COLNAMES <- c("CHROM", "GENPOS",
                            "BETA", "SE", "PVALUE")
 
 cols_extract <- c("chrom", "pos",
-                  "ea", "other_allele", "af", 
+                  "alt", "ref", "af", 
                   "", "", "num_cases", "num_controls",
                   "beta", "se", "pval")
 
@@ -197,11 +199,15 @@ sink()
 
 # Print file formatted for METAL ----
 
-# Sort results by chromosome and position and rename SNP to "N:pos:major_minor"
+# Get MarkerName by matching to the existing meta-analysis
+# If the marker doesn't exist in the existing MA, then retain alt as is
+
+
+# Sort results by chromosome and position and rename SNP to "N:pos:alt_ref"
 cleaned <- cleaned %>% arrange(CHROM, GENPOS) %>%
-  mutate(major_allele = ifelse(A1FREQ <= 0.5, ALLELE0, ALLELE1),
-         minor_allele = ifelse(A1FREQ <= 0.5, ALLELE1, ALLELE0),
-         ID = paste0(CHROM, ":", GENPOS, ":", major_allele, "_", minor_allele))
+  mutate(poss_id1 = paste0(CHROM, ":", GENPOS, ":", ALLELE0, "_", ALLELE1),
+         poss_id2 = paste0(CHROM, ":", GENPOS, ":", ALLELE1, "_", ALLELE0),
+         ID = ifelse(poss_id1 %in% marker_ids, poss_id1, poss_id2))
 
 to_print <- cleaned[, c("ID", "CHROM", "GENPOS", 
                         "ALLELE1", "ALLELE0", "A1FREQ", "MAF", 

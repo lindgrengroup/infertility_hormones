@@ -45,11 +45,36 @@ ggsave(paste0(mainpath, "/maf_vs_maf_plot.png"),
        ggarrange(plotlist = mm_per_bin, nrow = 2, ncol = 3, 
                  common.legend = T))
 
-# Correlation in MAF across bins
+# Correlation in MAF across bins ----
 
 summ_dat <- dat %>%
   group_by(MAF_bin) %>%
   summarise(maf_correlation = cor(MAF_MVP, MAF_old_meta),
             avg_freqse = mean(FreqSE_new_meta))
+
+# Compare MAF bins MVP and old meta-analysis ----
+
+log_bin_breaks <- ceiling(log10(min(dat$MAF_MVP))):-1
+bin_breaks <- c(0, 0.001, 0.01, 0.1, 1)
+bin_labels <- c("<0.1%", "[0.1% - 1%)", "[1% - 10%)", ">=10%")
+dat$MAF_bin_MVP <- cut(dat$MAF_MVP,
+                       breaks = bin_breaks, labels = bin_labels,
+                       include.lowest = T)
+dat$MAF_bin_laura <- cut(dat$MAF_old_meta,
+                         breaks = bin_breaks, labels = bin_labels,
+                         include.lowest = T)
+
+investigate_snps <- dat %>%
+  filter(MAF_bin_MVP != MAF_bin_laura) %>%
+  mutate(fdiff = MAF_MVP/MAF_old_meta)
+  # filter(fdiff < 0.11 | fdiff > 3.88) # top and bottom 10% of difference
+
+# Check a few SNPs against gnomAD
+
+write.table(investigate_snps[sample(1:nrow(investigate_snps), 10), ],
+            file = paste0(mainpath, "/random_sample_snps.txt"),
+            sep = "\t", row.names = F, quote = F)
+
+
 
 
