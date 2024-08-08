@@ -53,7 +53,7 @@ cleaned_eur$CHROM <- as.numeric(cleaned_eur$CHROM)
 # Add MAF
 cleaned_eur <- cleaned_eur %>%
   mutate(MAF = ifelse(Freq1 < 0.5, Freq1, 1-Freq1)) %>%
-  rename(ID = "MarkerName", SE = "StdErr")
+  rename(ID = MarkerName, BETA = Effect, SE = StdErr, PVALUE = P.value)
 
 # Cleaning functions ----
 
@@ -82,24 +82,9 @@ cleaned_eur <- chrom_filter(cleaned_eur)
 cleaned_eur <- extreme_effect(cleaned_eur)
 cleaned_eur <- duplicate_snps(cleaned_eur)
 
-cleaned_all <- chrom_filter(cleaned_all)
+cleaned_all <- chrom_filter(all_anc_res)
 cleaned_all <- extreme_effect(cleaned_all)
 cleaned_all <- duplicate_snps(cleaned_all)
-
-# Rename columns to standardise
-cleaned_eur <- cleaned_eur %>%
-  select(any_of(c("MarkerName", "CHROM", "GENPOS", "MAF",
-                  "Allele1", "Allele2", "Freq1", "FreqSE", 
-                  "Effect", "StdErr", "P.value", "Direction", "HetPVal"))) %>%
-  rename(any_of(c(ID = "MarkerName",  
-                  BETA = "Effect", SE = "StdErr", PVALUE = "P.value")))
-
-cleaned_all <- cleaned_all %>%
-  select(any_of(c("MarkerName", "CHROM", "GENPOS", "MAF",
-                  "Allele1", "Allele2", "Freq1", "FreqSE", 
-                  "Effect", "StdErr", "P.value", "Direction", "HetPVal"))) %>%
-  rename(any_of(c(ID = "MarkerName",  
-                  BETA = "Effect", SE = "StdErr", PVALUE = "P.value")))
 
 # Get list of markers that are ONLY significant in all-ancestry analyses
 # but not in EUR

@@ -22,12 +22,14 @@ export SIF=$COMORMENT/mixer/singularity
 
 singularity shell --bind ${ANALYSIS_DIR} --home $PWD:/home $SIF/mixer.sif
 
+# Combine files
+for pheno in female_infertility_analysis1 female_infertility_analysis3 female_infertility_analysis5 PCOS endometriosis hmb huber_twinning uterine_fibroids FSH_F Testosterone_F verdiesen_AMH williams_TSH Body_fat_percentage Body_mass_index Comparative_body_size_at_age_10 Waist_circumference Hip_circumference; do
+    python /tools/mixer/precimed/mixer_figures.py combine --json results/$pheno.fit.rep@.json  --out results/$pheno.fit
+    python /tools/mixer/precimed/mixer_figures.py combine --json results/$pheno.test.rep@.json  --out results/$pheno.test
+done
+
 for pheno1 in female_infertility_analysis1 female_infertility_analysis3 female_infertility_analysis5; do
     for pheno2 in PCOS endometriosis hmb huber_twinning uterine_fibroids FSH_F Testosterone_F verdiesen_AMH williams_TSH Body_fat_percentage Body_mass_index Comparative_body_size_at_age_10 Waist_circumference Hip_circumference; do
-        python /tools/mixer/precimed/mixer_figures.py combine --json results/$pheno1.fit.rep@.json  --out results/$pheno1.fit
-        python /tools/mixer/precimed/mixer_figures.py combine --json results/$pheno1.test.rep@.json  --out results/$pheno1.test
-        python /tools/mixer/precimed/mixer_figures.py combine --json results/$pheno2.fit.rep@.json  --out results/$pheno2.fit
-        python /tools/mixer/precimed/mixer_figures.py combine --json results/$pheno2.test.rep@.json  --out results/$pheno2.test
         python /tools/mixer/precimed/mixer_figures.py combine --json results/${pheno1}_vs_${pheno2}.fit.rep@.json  --out results/${pheno1}_vs_${pheno2}.fit
         python /tools/mixer/precimed/mixer_figures.py combine --json results/${pheno1}_vs_${pheno2}.test.rep@.json  --out results/${pheno1}_vs_${pheno2}.test
 

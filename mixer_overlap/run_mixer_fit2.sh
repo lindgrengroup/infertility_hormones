@@ -22,7 +22,7 @@ covars=${covars//|/,}
 echo ${covars}
 
 export COMORMENT=/well/lindgren/samvida/Resources
-export ANALYSIS_DIR=/well/lindgren/samvida/hormones_infertility
+export ANALYSIS_DIR=/well/lindgren
 export SINGULARITY_BIND="$COMORMENT/mixer/reference:/REF:ro"
 export SIF=$COMORMENT/mixer/singularity
 export MIXER_COMMON_ARGS="--ld-file /REF/ldsc/1000G_EUR_Phase3_plink/1000G.EUR.QC.@.run4.ld --bim-file /REF/ldsc/1000G_EUR_Phase3_plink/1000G.EUR.QC.@.bim --threads 8"
