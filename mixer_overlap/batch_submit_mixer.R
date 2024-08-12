@@ -9,7 +9,7 @@ input_phenos <- read.table(paste0(main_filepath, "/mixer_overlap/input_sumstats.
                            sep = "\t", header = T, stringsAsFactors = F)
 
 # Run fit 1 
-submission_script <- paste0(main_filepath, "/scripts/run_mixer_fit1.sh")
+submission_script <- paste0(main_filepath, "/scripts/1_run_mixer_fit1.sh")
 
 for (i in 1:nrow(input_phenos)) {
     pheno <- input_phenos$phenotype[i]
@@ -32,7 +32,7 @@ for (i in 1:nrow(input_phenos)) {
 
 # The first 3 phenotypes (infertility) are the target
 
-submission_script <- paste0(main_filepath, "/scripts/run_mixer_fit2.sh")
+submission_script <- paste0(main_filepath, "/scripts/2_run_mixer_fit2.sh")
 
 for (i in 1:3) {
   for (j in 4:nrow(input_phenos)) {
