@@ -114,11 +114,17 @@ write.table(comp_ldsc, "bivariate_results_with_ldsc_rg.txt",
 
 bivar_annot <- bivar_res %>%
   mutate(prop_shared = nc12.p9..mean. / (nc12.p9..mean. + nc1.p9..mean. + nc2.p9..mean.),
+         prop_unique_other = nc2.p9..mean. / (nc12.p9..mean. + nc1.p9..mean. + nc2.p9..mean.),
+         prop_unique_infert = nc1.p9..mean. / (nc12.p9..mean. + nc1.p9..mean. + nc2.p9..mean.),
          rg_p = 2*pnorm(abs(rg..mean./rg..std.), lower.tail = F),
          shared_rg_p = 2*pnorm(abs(rho_beta..mean./rho_beta..std.), lower.tail = F)) 
 
 ##### TO DO EVALUATE THESE FOR SUPP TEXT
 
-bivar_annot_sig <- bivar_annot %>% filter(shared_rg_p < 0.05/42)
+# high polygenic overlap: prop_shared > 25%
+high_overlap <- bivar_annot %>% filter(prop_shared > 0.25)
 
+# low polygenic overlap (<25%) but high local rG (P<0.05/42)
+locally_specific <- bivar_annot %>% filter(prop_shared <= 0.25 & shared_rg_p < 0.05) 
 
+ 
