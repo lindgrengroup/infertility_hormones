@@ -197,8 +197,7 @@ for_beta_maf_plots$classification[is.na(for_beta_maf_plots$classification)] <- "
 getBetaMAFPlotbyGene <- function (df, plot_title) {
   df <- df %>%
     mutate(beta_plot = abs(BETA),
-           shape_dirn = ifelse(BETA < 0, "down", "up"),
-           shape_size = beta_plot)
+           shape_dirn = ifelse(BETA < 0, "down", "up"))
   
   
   genes_to_colour <- df %>% arrange(desc(beta_plot))
@@ -227,11 +226,9 @@ getBetaMAFPlotbyGene <- function (df, plot_title) {
   res_plot <- ggplot(df, aes(x = MAF, y = beta_plot,
                              fill = shape_colour, colour = shape_colour)) +
     geom_point(data = df %>% filter(shape_colour == "other"),
-               aes(shape = shape_dirn,
-                   size = shape_size)) +
+               aes(shape = shape_dirn)) +
     geom_point(data = df %>% filter(shape_colour != "other"),
-               aes(shape = shape_dirn,
-                   size = shape_size)) +
+               aes(shape = shape_dirn)) +
     geom_text_repel(data = label_df, 
                     aes(label = hgnc_symbol)) +
     scale_x_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
@@ -251,8 +248,7 @@ getBetaMAFPlotbyGene <- function (df, plot_title) {
 getBetaMAFPlotbyNovelty <- function (df, plot_title) {
   df <- df %>%
     mutate(beta_plot = abs(BETA),
-           shape_dirn = ifelse(BETA < 0, "down", "up"),
-           shape_size = beta_plot)
+           shape_dirn = ifelse(BETA < 0, "down", "up"))
   
   colpal_use <- custom_three_diverge
   # Label (at most) one hit for each gene
@@ -267,8 +263,7 @@ getBetaMAFPlotbyNovelty <- function (df, plot_title) {
                              fill = classification, colour = classification)) +
     geom_point(data = df %>% filter(type == "common_variant" & MAF > 0.01)) +
     geom_point(data = df %>% filter(MAF <= 0.01),
-               aes(shape = shape_dirn,
-                   size = shape_size)) +
+               aes(shape = shape_dirn)) +
     geom_text_repel(data = label_df, 
                     aes(label = hgnc_symbol)) +
     scale_x_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
