@@ -41,10 +41,10 @@ rg_results <- lapply(c(HORMONE_STRATA, INFERT_STRATA), function (tt) {
 rg_results <- bind_rows(rg_results)
 
 write_sig <- rg_results %>%
-  filter(p <= PTHRESH) %>%
+  #filter(p <= PTHRESH) %>%
   arrange(p1, p)
 
-write.table(write_sig, paste0(mainpath, "/significant_results_all_phenos.txt"),
+write.table(write_sig, paste0(mainpath, "/all_results_all_phenos.txt"),
              sep = "\t", quote = F, row.names = F)
 
 # Plot significant results ----
