@@ -78,7 +78,7 @@ full_dat <- full_dat %>%
                                       "consistent", 
                                       "inconsistent"),
          het_zstat = (BETA_F - BETA_M)/sqrt(SE_F^2 + SE_M^2),
-         het_pval = pnorm(het_zstat, 0, 1, lower.tail = T))
+         het_pval = 2*pnorm(-abs(het_zstat), lower.tail = T))
 
 write.table(full_dat,
             paste0("/well/lindgren/samvida/hormones_infertility/sex_heterogeneity/",
