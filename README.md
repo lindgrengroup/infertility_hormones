@@ -1,8 +1,8 @@
 # Genome-wide analyses identify 21 infertility loci and over 400 reproductive hormone loci across the allele frequency spectrum
 
-Code for analyses in pre-printed article here - 
+Code for analyses in pre-printed article here - https://www.medrxiv.org/content/10.1101/2024.03.19.24304530v1 
 
-Cite as: 
+Cite as: Venkatesh SS, Wittemans LBL, Palmer DS, et al. Genome-wide analyses identify 21 infertility loci and over 400 reproductive hormone loci across the allele frequency spectrum. medRxiv [Preprint]. 2024 Mar 20:2024.03.19.24304530. doi: 10.1101/2024.03.19.24304530. PMID: 38562841; PMCID: PMC10984039.
 
 ## Structure
 
